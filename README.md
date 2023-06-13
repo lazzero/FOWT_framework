@@ -1,4 +1,4 @@
-# FOWT_optim_test
+# FOWT_framework
 
 To run the code you need to install the following packages in the conda environment:
 

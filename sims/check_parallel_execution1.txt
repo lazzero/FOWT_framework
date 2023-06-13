@@ -1,0 +1,4 @@
+time: 16:33:47, recognized simulation software: OpenFAST, folder id: PROVA 
+time: 10:59:52, recognized simulation software: OpenFAST, folder id: PROVA 
+time: 11:50:42, recognized simulation software: QBlade, folder id: prova_QBlade_1 
+time: 12:34:38, recognized simulation software: QBlade, folder id: 9b1cf08876484c7f876cad0284817355 

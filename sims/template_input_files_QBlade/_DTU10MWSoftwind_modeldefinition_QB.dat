@@ -1,0 +1,12 @@
+# Comment line (file names and folders in this folder which define the model)
+# another comment line
+DTU10MW_Softwind_Turbine_Simulation.sim - SIMFILENAME
+SOFTWIND_UBEM_OPT.trb - TRBFILENAME
+Softwind_Spar_Experiment_Main_MOD_2.str - MAINFILENAME
+Softwind_Spar_DTU10MW_Blade.str - BLDFILENAME
+Softwind_Spar_OOStar_Tower.str - TWRFILENAME
+Softwind_Spar_OOStar_Sub_MOD_2.str - SUBFILENAME
+SW_SPAR_MAP.dat - MAPFILENAME
+\Aero - AERFOLDERNAME
+\HDB - HYDFOLDERNAME
+

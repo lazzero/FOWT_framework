@@ -1,0 +1,36 @@
+--------------------- MoorDyn Input File ------------------------------------
+Mooring system for the DTU 10MW Reference Wind Turbine installed on USTUTT INNWIND Triple Spar floater, v0.03
+True     Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+1        NTypes    - number of LineTypes
+Name     Diam      MassDen      EA    BA/-zeta  Can   Cat   Cdn   Cdt
+(-)       (m)      (kg/m)       (N)   (N-s/-)   (-)   (-)   (-)   (-)
+main     0.3101     594.0     1.3739E9  -1.0     0.8   0.25  2.0   0.4
+---------------------- CONNECTION PROPERTIES --------------------------------
+6       NConnects - number of connections including anchors and fairleads
+Node    Type      X        Y        Z       M     V      FX   FY   FZ   CdA   CA
+(-)     (-)      (m)      (m)      (m)     (kg)  (m^3)  (kN) (kN) (kN) (m^2)  (-)
+1      Fixed   600.0     0.0     -180.0     0      0      0    0    0    0     0
+2      Fixed  -300.0   519.615   -180.0     0      0      0    0    0    0     0
+3      Fixed  -300.0  -519.615   -180.0     0      0      0    0    0    0     0
+4      Vessel  54.48     0.0        8.70     0      0      0    0    0    0     0
+5      Vessel -27.24    47.181      8.70     0      0      0    0    0    0     0
+6      Vessel -27.24   -47.181      8.70     0      0      0    0    0    0     0
+---------------------- LINE PROPERTIES --------------------------------------
+3        NLines    - number of line objects
+Line    LineType  UnstrLen  NumSegs   NodeAnch  NodeFair  Outputs  CtrlChan
+(-)       (-)       (m)       (-)       (-)       (-)       (-)      (-)
+1         main     610.0      75        1         4          -        0
+2         main     610.0      75        2         5          -        0
+3         main     610.0      75        3         6          -        0
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.001    dtM       - time step to use in mooring integration (s)
+3.0e6    kbot      - bottom stiffness (Pa/m)
+3.0e5    cbot      - bottom damping (Pa-s/m)
+0.25     dtIC      - time interval for analyzing convergence during IC gen (s)
+300.0    TmaxIC    - max time for ic gen (s)
+4.0      CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.01     threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+END
+------------------------- need this line --------------------------------------

@@ -1,0 +1,2 @@
+PROVA successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 428.30 s - f_max: 0.0000 
+PROVA successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 133.63 s - f_max: 0.0000 

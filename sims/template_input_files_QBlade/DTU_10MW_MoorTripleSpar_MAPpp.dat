@@ -1,0 +1,25 @@
+--------------- LINE DICTIONARY ----------------------------------------------
+LineType        Diam           MassDen          EA         CB   CIntDamp  Ca    Cdn    Cdt         
+(-)             (m)             (kg/m)          (N)        (-)   (Pa-s)   (-)   (-)    (-)         
+main	         0.3101	        594.0	     1.3739E9	 1.0    -999.9 -999.9 -999.9 -999.9   
+--------------- NODE PROPERTIES ----------------------------------------------
+Node Type         X             Y            Z           M       B     FX    FY    FZ
+(-)  (-)         (m)           (m)          (m)         (kg)   (mˆ3)   (N)   (N)   (N)                        
+1	fix	 732.500	      0.0	    depth	       0	  0	   #     #     #		
+2	fix	-366.249	     634.362	    depth	       0	  0	   #     #     #		
+3	fix	-366.249	    -634.362	    depth	       0	  0	   #     #     #		
+4	vessel	  54.500	       0.000	    8.7	       0	  0	   #     #     #		
+5	vessel	 -27.250	      47.198	    8.7	       0	  0	   #     #     #		
+6	vessel	 -27.250	     -47.198	    8.7	       0	  0	   #     #     #		
+---------------------- LINE PROPERTIES --------------------------------------
+Line            LineType        UnstrLen           NodeAnch       NodeFair        Outputs         CtrlChan       
+(-)             (-)               (m)                (-)            (-)             (-)             (-)             (-)           
+1	            main	     841.2542495141946	   1	            4	   altitude     x_excursion    tension_fair  
+2	            main	     841.2542495141946	   2	            5	   altitude     x_excursion    tension_fair  
+3	            main	     841.2542495141946	   3	            6	   altitude     x_excursion    tension_fair  
+---------------------- SOLVER OPTIONS ---------------------------------------
+Option
+(-)
+outer_tol 1e-3
+OUTER_MAX_ITS 3000
+ repeat 120 240

@@ -1,0 +1,11 @@
+# Comment line (file names and folders in this folder which define the model)
+# another comment line
+DTU10MW_Turbine_Simulation.sim - SIMFILENAME
+DTU_10MW_AE_BEM.trb - TRBFILENAME
+DTU10MW_Main.str - MAINFILENAME
+DTU10MW_Blade.str - BLDFILENAME
+DTU10MW_TowerOffshore.str - TWRFILENAME
+DTU10MW_SubTripleSpar.str - SUBFILENAME
+DTU_10MW_MoorTripleSpar_MAPpp.dat - MAPFILENAME
+\Aerodata - AERFOLDERNAME
+\HydroData - HYDFOLDERNAME

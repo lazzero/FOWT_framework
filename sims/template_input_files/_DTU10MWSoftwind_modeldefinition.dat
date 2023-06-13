@@ -1,0 +1,14 @@
+# Comment line (file names and file paths)
+# another comment line
+SW_SPAR_STATIC_EQUILIBRIUM_EQ3MOORING.fst - FSTFILENAME
+DTU_10MW_ElastoDyn_Blades.dat - BLDFILENAME
+DTU_10MW_OO_GoM_ElastoDyn_Tower.dat - TWRFILENAME
+SW_SPAR_MAP.dat - MAPFILENAME
+SW_SPAR_MoorDyn_eq3moor.dat - MRDFILENAME
+DTU_10MW_OO_GoM_ElastoDyn.dat - ELSFILENAME
+SW_SPAR_HD_01.dat - HYDFILENAME
+DTU_10MW_RWT_AeroDyn_MPHC_par.dat - ARDFILENAME
+SW_SPAR_IFW_template_12.dat - IFWFILENAME
+\HDB - HYDFOLDERNAME
+\Aerodata - AERFOLDERNAME
+\Servodyndata - SRVFOLDERNAME

@@ -1,0 +1,10 @@
+# This is an input file for the tower top force time-series in the TMD module of ServoDyn
+#
+# it has an arbitrary number of header lines denoted with #!% characters
+!  Another comment line
+#
+# Time,     Fx,      Fy,      Fz,      Mx,      My,      Mz
+# (s)       (N)      (N)      (N)      (N-m)    (N-m)    (N-m)
+0.0         0.0      0.0      0.0      0.0      0.0      0.0
+20.0      1.65e6     0.0      0.0      0.0      0.0      0.0      # end ramp -- this is a comment
+1800.0    1.65e6     0.0      0.0      0.0      0.0      0.0

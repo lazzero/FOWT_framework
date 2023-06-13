@@ -1,0 +1,16 @@
+# Comment line (file names and file paths related to openfast .fst file location)
+# another comment line
+# DTU10MW3Spar_IFW_template_9.dat - IFWFILENAME
+# TimeForceSeries.dat - FRCFILENAME
+# TimeMomentSeries.dat - MOMFILENAME
+# \Servodyndata - SRVFOLDERNAME
+DTU10MW3Spar_Param_MPHC_par.fst - FSTFILENAME
+DTU_10MW_ElastoDyn_Blades_MPHC_par.dat - BLDFILENAME
+DTU_10MW_ElastoDyn_Tower_MPHC_par.dat - TWRFILENAME
+DTU_10MW_RWT_AeroDyn_MPHC_par.dat - ARDFILENAME
+DTU_10MW_RWT_TripleSpar_MAPpp_mooring_MPHC_par.dat - MAPFILENAME
+DTU_10MW_RWT_TripleSpar_MoorDyn_MPHC_par.dat - MRDFILENAME
+DTU10MW3Spar_EDFile_MPHC_par.dat - ELSFILENAME
+DTU10MW3Spar_HydroFile_MPHC_par.dat - HYDFILENAME
+\Aerodata - AERFOLDERNAME
+\HydroData - HYDFOLDERNAME

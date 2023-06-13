@@ -1,0 +1,130 @@
+----------------------------------------QBlade Turbine Definition File----------------------------------------------
+Generated with : QBlade EE v2.0.4.9_alpha windows
+Archive Format: 310007
+Time : 17:33:45
+Date : 19.04.2023
+
+----------------------------------------Object Name-----------------------------------------------------------------
+SOFTWIND_UBEM_OPT OBJECTNAME    - the name of the turbine object
+
+----------------------------------------Rotor Definition------------------------------------------------------------
+Aero/DTU_10MW_AD14.bld BLADEFILE     - the path of the blade file that is used in this turbine definition
+0             TURBTYPE      - the turbine type (0 = HAWT or 1 = VAWT)
+3             NUMBLADES     - the number of blades (a Structural Model overrides this value)
+0             ROTORCONFIG   - the rotor configuration (0 = UPWIND or 1 = DOWNWIND)
+0             ROTATIONALDIR - the direction of rotor rotation (0 = STANDARD or 1 = REVERSED)
+2             DISCTYPE      - type of rotor discretization (0 = from Bladetable, 1 = linear, 2 = cosine)
+25            NUMPANELS     - the number of aerodynamic panels per blade (unused if DISCTYPE = 0)
+
+----------------------------------------Turbine Geometry Parameters-------------------------------------------------
+These         values        - are only used if no Structural Model is defined for this Turbine, in case of a Structural Model the geometry is defined in the Structural Input Files!!
+14.867        OVERHANG      - the rotor overhang [m] (HAWT only)
+0.0           SHAFTTILT     - the shaft tilt angle [deg] (HAWT only)
+0.0           ROTORCONE     - the rotor cone angle [deg] (HAWT only)
+0.0           CLEARANCE     - the rotor clearance to ground [m] (VAWT only)
+0.0           XTILT         - the rotor x-tilt angle [deg] (VAWT only)
+0.0           YTILT         - the rotor y-tilt angle [deg] (VAWT only)
+178.4         TOWERHEIGHT   - the tower heigh [m]
+2.549         TOWERTOPRAD   - the tower top radius [m]
+3.568         TOWERBOTRAD   - the tower bottom radius [m]
+
+----------------------------------------Aerodynamic Models----------------------------------------------------------
+0             DYNSTALLTYPE  - the dynamic stall model: 0 = none; 1 = OYE; 2 = GORMONT-BERG or 3 = ATEFLAP
+8             TF_OYE        - Tf constant for the OYE dynamic stall model
+6             AM_GB         - Am constant for the GORMONT-BERG dynamic stall model
+3             TF_ATE        - Tf constant for the ATEFLAP dynamic stall model
+2             TP_ATE        - Tp constant for the ATEFLAP dynamic stall model
+0             2PLIFTDRAG    - include the 2 point lift drag correction? (0 = OFF or 1 = ON)
+0             HIMMELSKAMP   - include the Himmelskamp Stall delay? (0 = OFF or 1 = ON) (HAWT only)
+0             TOWERSHADOW   - include the tower shadow effect (0 = OFF or 1 = ON)
+1             TOWERDRAG     - the tower drag coefficient [-] (if a Structural Model is used the tower drag is defined in the tower input file)
+
+----------------------------------------Wake Type------------------------------------------------------------------
+1             WAKETYPE      - the wake type: 0 = free vortex wake; 1 = unsteady BEM (unsteady BEM is only available for HAWT)
+
+----------------------------------------Vortex Wake Parameters------------------------------------------------------
+Only          used          - if waketype = 0
+0             WAKEINTTYPE   - the wake integration type: 0 = EF; 1 = PC; 2 = PC2B
+1             WAKEROLLUP    - calculate wake self-induction (0 = OFF or 1 = ON)
+1             TRAILINGVORT  - include trailing vortex elements (0 = OFF or 1 = ON)
+1             SHEDVORT      - include shed vortex elements (0 = OFF or 1 = ON)
+0             CONVECTIONTYPE - the wake convection type (0 = BL, 1 = HH, 2 = LOC)
+1.0           WAKERELAXATION - the wake relaxation factor [0-1]
+1.0           FIRSTWAKEROW  - first wake row length [-]
+200000        MAXWAKESIZE   - the maximum number of wake elements [-]
+100           MAXWAKEDIST   - the maxmimum wake distance from the rotor plane (normalized by dia) [-]
+0.001         WAKEREDUCTION - the wake reduction factor [-]
+1             WAKELENGTHTYPE - the wake length type (0 = counted in rotor revolutions, 1 = counted in time steps)
+1000000.0     CONVERSIONLENGTH - the wake conversion length (to particles) [-]
+72.0          NEARWAKELENGTH - the near wake length [-]
+144.0         ZONE1LENGTH   - the wake zone 1 length [-]
+576.0         ZONE2LENGTH   - the wake zone 2 length [-]
+1152.0        ZONE3LENGTH   - the wake zone 3 length [-]
+2             ZONE1FACTOR   - the wake zone 1 factor (integer!) [-]
+2             ZONE2FACTOR   - the wake zone 2 factor (integer!) [-]
+2             ZONE3FACTOR   - the wake zone 3 factor (integer!) [-]
+
+----------------------------------------Vortex Core Parameters------------------------------------------------------
+Only          used          - if waketype = 0
+0.05          BOUNDCORERADIUS - the fixed core radius of the bound blade vortex (fraction of local chord) [0-1]
+0.05          WAKECORERADIUS - the intial core radius of the free wake vortex (fraction of local chord) [0-1]
+1100.0        VORTEXVISCOSITY - the turbulent vortex viscosity
+0             VORTEXSTRAIN  - calculate vortex strain 0 = OFF, 1 = ON
+5             MAXSTRAIN     - the maximum element strain, before elements are removed from the wake [-]
+
+----------------------------------------Gamma Iteration Parameters--------------------------------------------------
+Only          used          - if waketype = 0
+0.4           GAMMARELAXATION - the relaxation factor used in the gamma (circulation) iteration [0-1]
+0.001         GAMMAEPSILON  - the relative gamma (circulation) convergence criteria
+100           GAMMAITERATIONS - the maximum number of gamma (circulation) iterations (integer!) [-]
+
+----------------------------------------Unsteady BEM Parameters------------------------------------------------------
+16            POLARDISC     - the polar discretization for the unsteady BEM (integer!) [-]
+1             BEMTIPLOSS    - use BEM tip loss factor, 0 = OFF, 1 = ON
+0.0           BEMSPEEDUP    - initial BEM convergence acceleration time [s]
+
+----------------------------------------Structural Model-------------------------------------------------------------
+Softwind_Spar_Experiment_Main_MOD_2.str STRUCTURALFILE - the input file for the structural model (leave blank if unused)
+0             GEOMSTIFFNESS - enable geometric stiffness, 0 = OFF, 1 = ON
+
+----------------------------------------Turbine Controller-----------------------------------------------------------
+0             CONTROLLERTYPE - the type of turbine controller 0 = none, 1 = BLADED, 2 = DTU, 3 = TUB
+CONTROLLERFILE -             - the controller file name, WITHOUT file ending (.dll or .so) - leave blank if unused
+PARAMETERFILE -             - the controller parameter file name (leave blank if unused)
+
+TURB_INFO
+
+SOFTWIND      10MW          - FOWT
+
+--------------220329  V1.0---------------- 
+- initial version
+
+--------------220630  V2.0---------------- 
+- New structural model input style
+
+--------------220709  V3.0----------------
+- Added controller from SOFTWIND experiments (Modified from DTU 10MW to have oO star controller parameters)
+- Modified Mooring line lengths slightly 
+- Shifted platform COG slightly towards centreline
+- Modified blade definition to AD14 blade def.
+- Included STATICBUOYANCY flag
+
+--------------220919  V4.0----------------
+- Included new tower definition from o0 star model
+- Modified nacell mass and inertial parameters to correspond to o0 star model
+- Included new substructure definition from F. Papi to facilitate comparisons
+- Modified water density to 1125 kg/m^3
+- Removed load cells from mooring line connection points and increased mooring line length to correspond
+- Corrected error in added mass matrix entry [4,2] (sway-roll coupling)
+- Included de-rated controller from F. Papi to facilitate comparisons
+- Modified LLT parameters to improve performance and efficiency
+- Added drag coefficient of 0.8 to tower sections
+- Included potential flow model around tower
+
+--------------230417  MOD2----------------
+- Included WFF control (DO NOT activate FF)
+- Substructure and mooring lines modified according to helix strategy
+- Morison elements of substructure have no volume
+
+
+END_TURB_INFO

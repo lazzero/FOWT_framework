@@ -2,3 +2,12 @@ time: 16:33:47, recognized simulation software: OpenFAST, folder id: PROVA
 time: 10:59:52, recognized simulation software: OpenFAST, folder id: PROVA 
 time: 11:50:42, recognized simulation software: QBlade, folder id: prova_QBlade_1 
 time: 12:34:38, recognized simulation software: QBlade, folder id: 9b1cf08876484c7f876cad0284817355 
+time: 14:46:47, recognized simulation software: OpenFAST, folder id: PROVANUOVO 
+time: 14:54:23, recognized simulation software: OpenFAST, folder id: PROVANUOVO 
+time: 15:09:05, recognized simulation software: OpenFAST, folder id: PROVANUOVO 
+time: 15:18:57, recognized simulation software: OpenFAST, folder id: PROVANUOVO 
+time: 15:37:15, recognized simulation software: OpenFAST, folder id: PROVANUOVO2 
+time: 15:52:33, recognized simulation software: OpenFAST, folder id: PROVANUOVO2 
+time: 16:24:50, recognized simulation software: OpenFAST, folder id: PROVANUOVO3 
+time: 17:28:10, recognized simulation software: OpenFAST, folder id: PROVANOSIM 
+time: 17:49:07, recognized simulation software: OpenFAST, folder id: PROVANOSIM2 

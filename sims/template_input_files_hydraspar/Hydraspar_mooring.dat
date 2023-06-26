@@ -1,0 +1,48 @@
+--------------------- MoorDyn Input File ------------------------------------
+Mooring system for the HYDRASPAR 4 columns
+True     Echo      - echo the input file data (flag)
+----------------------- LINE TYPES ------------------------------------------
+1		 NTypes	-	number	of	LineTypes						
+Name	Diam	MassDen	EA	BA/-zeta	Can	Cat	Cdn	Cdt			
+(-)	(m)	(kg/m)	(N)	(N-s/-)	(-)	(-)	(-)	(-)			
+main	0.113	78.8	2.502E+08	-2	2.6	1.0	1.4	1.0			
+----------------------	CONNECTION	PROPERTIES	--------------------------------								
+8	NConnects	-	number	of	connections	including	anchors	and	fairleads		
+Node	Type	X	Y	Z	M	V	FX	FY	FZ	CdA	CA
+(-)	(-)	(m)	(m)	(m)	(kg)	(m^3)	(kN)	(kN)	(kN)	(m^2)	(-)
+1	Fixed	127.6400	0.0000	-40.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+2	Fixed	0.0000	127.6400	-40.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+3	Fixed	-127.6400	0.0000	-40.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+4	Fixed	0.0000	-127.6400	-40.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+5	Vessel	7.2760	0.0000	-4.2000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+6	Vessel	0.0000	7.2760	-4.2000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+7	Vessel	-7.2760	0.0000	-4.2000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+8	Vessel	0.0000	-7.2760	-4.2000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000	0.0000
+----------------------	LINE	PROPERTIES	--------------------------------------								
+4	NLines	-	number	of	line	objects					
+Line	LineType	UnstrLen	NumSegs	NodeAnch	NodeFair	Flags/Outputs	CtrlChan				
+(-)	(-)	(m)	(-)	(-)	(-)	(-)	(-)				
+1	main	133.59	50	1	5	-	0				
+2	main	133.59	50	2	6	-	0				
+3	main	133.59	50	3	7	-	0				
+4	main	133.59	50	4	8	-	0				
+---------------------- SOLVER OPTIONS ---------------------------------------
+0.0001    dtM      - time step to use in mooring integration (s)
+3e7    	 kbot      - bottom stiffness (Pa/m)
+3e6      cbot      - bottom damping (Pa-s/m)
+0.25     dtIC      - time interval for analyzing convergence during IC gen (s)
+600.0    TmaxIC    - max time for ic gen (s)
+10.0     CdScaleIC - factor by which to scale drag coefficients during dynamic relaxation (-)
+0.001    threshIC  - threshold for IC convergence (-)
+------------------------ OUTPUTS --------------------------------------------
+FairTen1
+FairTen2
+FairTen3
+FairTen4
+AnchTen1
+AnchTen2
+AnchTen3
+AnchTen4
+END
+------------------------- need this line --------------------------------------
+

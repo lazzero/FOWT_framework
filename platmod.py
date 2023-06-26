@@ -42,11 +42,13 @@ def plat_config_openfast(xx,
                 calc_hydro_flag = True
                 a+=1
             else:
-                SparDistance = turbModel['FIXVARIABLES']['SparDistance']
-                SparDistance_Reference = turbModel['FIXVARIABLES']['SparDistance']
-                calc_hydro_flag = False
                 a+=1
         
+        if 'SparDistance' not in turbModel['DESVARIABLES'].keys():
+         SparDistance = turbModel['FIXVARIABLES']['SparDistance']
+         SparDistance_Reference = turbModel['FIXVARIABLES']['SparDistance']
+         calc_hydro_flag = False
+      
         #read ElastoDyn input template file 
         ED_data = FASTInputFile(filepath+'\\'+turbModel['ELSFILENAME'])
         
@@ -143,7 +145,7 @@ def plat_config_openfast(xx,
         # write hydrodyn and elastodyn modified file
         HD_data.write(filepath_mod+'\\'+turbModel['HYDMODFILENAME'])
         ED_data.write(filepath_mod+'\\'+turbModel['ELSMODFILENAME'])
-    
+
     elif turbModel['PLATFORMTYPE'] == 'Spar':
               
         #read ElastoDyn input template file 
@@ -167,7 +169,121 @@ def plat_config_openfast(xx,
         hstfile = 0
         K_hst = 0
         draft = 0
-    
+
+    elif turbModel['PLATFORMTYPE'] == 'HydraSpar':
+        a = 0
+        
+        for i in turbModel['DESVARIABLES'].keys():
+            if i == 'SparDistance':
+                SparDistance = xx[a]
+                SparDistance_Reference = turbModel['DESVARIABLES']['SparDistance']
+                calc_hydro_flag = True
+                a+=1
+            else:
+                a+=1
+        
+        if 'SparDistance' not in turbModel['DESVARIABLES'].keys():
+         SparDistance = turbModel['FIXVARIABLES']['SparDistance']
+         SparDistance_Reference = turbModel['FIXVARIABLES']['SparDistance']
+         calc_hydro_flag = False
+      
+        #read ElastoDyn input template file 
+        ED_data = FASTInputFile(filepath+'\\'+turbModel['ELSFILENAME'])
+        
+        # read Hydrodyn input template file 
+        HD_data = FASTInputFile(filepath+'\\'+turbModel['HYDFILENAME'])
+      
+        hstfile = 0
+        K_hst = 0
+        draft = 0
+
+        if calc_hydro_flag:
+
+             # Set poisition of spars based on the modified distance for Morison elements
+            HD_data["Joints"][0,1]=SparDistance;                    HD_data["Joints"][0,2]=0; 
+            HD_data["Joints"][1,1]=SparDistance;                    HD_data["Joints"][1,2]=0; 
+            HD_data["Joints"][2,1]=SparDistance;                    HD_data["Joints"][2,2]=0;
+            HD_data["Joints"][3,1]=SparDistance*np.cos(2*np.pi/3);  HD_data["Joints"][3,2]=SparDistance*np.sin(2*np.pi/3); 
+            HD_data["Joints"][4,1]=SparDistance*np.cos(2*np.pi/3);  HD_data["Joints"][4,2]=SparDistance*np.sin(2*np.pi/3); 
+            HD_data["Joints"][5,1]=SparDistance*np.cos(2*np.pi/3);  HD_data["Joints"][5,2]=SparDistance*np.sin(2*np.pi/3);
+            HD_data["Joints"][6,1]=SparDistance*np.cos(-2*np.pi/3); HD_data["Joints"][6,2]=SparDistance*np.sin(-2*np.pi/3); 
+            HD_data["Joints"][7,1]=SparDistance*np.cos(-2*np.pi/3); HD_data["Joints"][7,2]=SparDistance*np.sin(-2*np.pi/3); 
+            HD_data["Joints"][8,1]=SparDistance*np.cos(-2*np.pi/3); HD_data["Joints"][8,2]=SparDistance*np.sin(-2*np.pi/3);
+
+            # Set location of hydrodynamic file (first is the name)
+            hydro_folder_name_temp = r'"triple_spar_mesh_mod\triple_spar_mesh_mod"'
+            hydro_folder_name = filepath_mod + "\\triple_spar_mesh_mod"
+        
+            try:
+                os.mkdir(hydro_folder_name)
+            except OSError:
+                print ("Creation of the directory %s failed" % hydro_folder_name)
+            else:
+                print ("Successfully created the directory %s" % hydro_folder_name)
+                
+            HD_data["PotFile"] = hydro_folder_name_temp
+
+            spar_radius =  turbModel['FIXVARIABLES']['SparRadius']
+            spar_height = turbModel['FIXVARIABLES']['SparHeight']
+            hp_radius = turbModel['FIXVARIABLES']['HPRadius']
+            hp_thickness = turbModel['FIXVARIABLES']['HPHeight']
+            spar1_X = SparDistance*np.cos(0)
+            spar1_Y = SparDistance*np.sin(0)
+            spar_vertical_divisions = 20
+            circle_divisions = 8
+            hp_vertical_divisions = 2
+            hp_sup_divisions = 4
+            hp_inf_divisions = 8
+            draft = spar_height + hp_thickness
+
+            input_mesh_file = filepath_mod + "\\"+"triple_spar_mesh_mod.msh"
+            create_triple_spar_mesh(input_mesh_file[0:-4],spar_radius,spar_height,hp_radius,hp_thickness,spar1_X,spar1_Y,spar_vertical_divisions, circle_divisions,hp_vertical_divisions,hp_sup_divisions,hp_inf_divisions,show=show_flag)
+        
+            # omegas in rad/s and direction in rad
+            omega_step = 0.10
+            omega_start = (2*np.pi)/300
+            omega_end = (2*np.pi)/2
+        
+            omegas = np.arange(omega_start,omega_end,omega_step)
+            np.append(omegas, [np.infty], axis=0) # fix the vector for infinite freq
+        
+            wave_directions = [0]
+        
+            hd_dataset = create_hydrodyn_database(input_mesh_file, omegas, wave_directions=wave_directions)
+            isConverted = convert_CAPYtoWAMIT_file(hd_dataset,hydro_folder_name+"\\triple_spar_mesh_mod")      
+        
+            # generate hydrostatic file
+            output_hst_namefile=hydro_folder_name+"\\triple_spar_mesh_mod"
+            is_hstfile_gen, hstfile,K_hst,K_dim=write_hydrost_file(input_mesh_file,output_hst_namefile ,CoG_Z = 0, rho=1023, g=9.81, show=show_flag)
+
+            # change inertia
+            PtfmRIner=ED_data["PtfmRIner"]
+            PtfmPIner=ED_data["PtfmPIner"]
+            PtfmYIner=ED_data["PtfmYIner"]
+            PtfmMass=ED_data["PtfmMass"]
+
+            PtfmRIner_mod=PtfmRIner-(2*PtfmMass/3)*(SparDistance_Reference*np.sin(np.pi/3))**2+(2*PtfmMass/3)*(SparDistance*np.sin(np.pi/3))**2
+            PtfmPIner_mod=PtfmPIner-(PtfmMass/3)*SparDistance_Reference**2+(PtfmMass/3)*SparDistance**2 \
+                                   -(2*PtfmMass/3)*(SparDistance_Reference*np.cos(np.pi/3))**2+(2*PtfmMass/3)*(SparDistance*np.cos(np.pi/3))**2
+            PtfmYIner_mod=PtfmYIner-(PtfmMass)*SparDistance_Reference**2+(PtfmMass)*SparDistance**2
+
+            ED_data["PtfmRIner"]=PtfmRIner_mod
+            ED_data["PtfmPIner"]=PtfmPIner_mod
+            ED_data["PtfmYIner"]=PtfmYIner_mod
+
+        else:
+            try:
+                # Copy hydrodynamic potential files folder to mod folders
+                src_dir=filepath+turbModel['HYDFOLDERNAME']
+                dst_dir=filepath_mod+turbModel['HYDFOLDERNAME']
+                shutil.copytree(src_dir,dst_dir)
+            except:
+                print('No hydrodynamic folder was found and copied')
+        
+        # write hydrodyn and elastodyn modified file
+        HD_data.write(filepath_mod+'\\'+turbModel['HYDMODFILENAME'])
+        ED_data.write(filepath_mod+'\\'+turbModel['ELSMODFILENAME'])
+
     return HD_data,ED_data,hstfile,K_hst,draft
 
 def plat_config_qblade(xx,

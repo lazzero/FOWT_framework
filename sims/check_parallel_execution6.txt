@@ -1,2 +1,9 @@
 PROVA successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 428.30 s - f_max: 0.0000 
 PROVA successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 133.63 s - f_max: 0.0000 
+PROVANUOVO successful execution of individual - number of .outb/.outq files: 3 - total evaluation elapsed time 402.67 s - f_max: 0.8611 
+PROVANUOVO successful execution of individual - number of .outb/.outq files: 2 - total evaluation elapsed time 394.08 s - f_max: 0.8611 
+PROVANUOVO successful execution of individual - number of .outb/.outq files: 2 - total evaluation elapsed time 401.07 s - f_max: 0.8611 
+PROVANUOVO2 successful execution of individual - number of .outb/.outq files: 3 - total evaluation elapsed time 381.76 s - f_max: 0.9060 
+PROVANUOVO3 successful execution of individual - number of .outb/.outq files: 4 - total evaluation elapsed time 390.66 s - f_max: 0.9060 
+PROVANOSIM successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 400.14 s - f_max: -1.0000 
+PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 278.37 s - f_max: -1.0000 

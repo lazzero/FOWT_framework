@@ -5,7 +5,11 @@ Created on Fri Sep 10 12:29:39 2021
 #  Module for processing hydrostatics for FLOATING PLATFORMS of wind turbines with "meshmagick"
 #  Run it as an independent script if you need it.
 #  Contains: 
-#  - functions: write_hydrost_file, get_hydrost
+#  - functions: write_hydrost_file,
+#               get_hydrost,
+#               calc_equil,
+#               print_mesh_quality,
+#               clip_mesh
 #
 #
 
@@ -15,10 +19,11 @@ Created on Fri Sep 10 12:29:39 2021
 from datetime import datetime
 
 
-from meshmagick import mmio, hydrostatics, mesh
+from meshmagick import mmio, hydrostatics, mesh, mesh_clipper, inertia
 import os
 
 def write_hydrost_file(input_mesh_file,output_hst_namefile, * ,CoG_Z = 0, rho=1023, g=9.81, show=False):
+
     V, F = mmio.load_MSH(input_mesh_file)
     mymesh = mesh.Mesh(V, F)
     
@@ -46,6 +51,7 @@ def write_hydrost_file(input_mesh_file,output_hst_namefile, * ,CoG_Z = 0, rho=10
     
     K_hst = my_data
     K_dim = my_data_dim
+
     # Create name of file
     ext_file = ".hst"
     complete_name = "".join([output_hst_namefile,ext_file])
@@ -59,6 +65,7 @@ def write_hydrost_file(input_mesh_file,output_hst_namefile, * ,CoG_Z = 0, rho=10
     complete_name = "".join([output_hst_namefile,dt_string,ext_file]) if os.path.exists(complete_name) else complete_name
     
     file_object = open(complete_name, "w+")
+
     # skip header
     with file_object:
         for i in range(6):
@@ -69,6 +76,7 @@ def write_hydrost_file(input_mesh_file,output_hst_namefile, * ,CoG_Z = 0, rho=10
     return True,complete_name,K_hst, K_dim
 
 def get_hydrost(input_mesh_file, * , CoG_Z= 0, rho=1023, g=9.81,show = False):
+
     V, F = mmio.load_MSH(input_mesh_file)
     mymesh = mesh.Mesh(V, F)
     
@@ -82,7 +90,7 @@ def get_hydrost(input_mesh_file, * , CoG_Z= 0, rho=1023, g=9.81,show = False):
     
     hydro_cilindro = hydrostatics.compute_hydrostatics(mymesh,[0.0, 0.0, CoG_Z],rho, g)
             
-    # fix cogZ to get the proper I_CM elements when calculating Hydrostatics
+    # Fix cogZ to get the proper I_CM elements when calculating Hydrostatics
     cog_Z = CoG_Z
         
     displaced_mass = hydro_cilindro['disp_mass']
@@ -112,7 +120,7 @@ def print_mesh_quality(input_mesh_file, *,show = False,rho = 1025, g = 9.81):
     
     return True
 
-def calc_equil(input_mesh_file, cog=[0,0,-56.8], disp_tons=1260, rho_water=1023, grav=9.81, reltol=1e-06, verbose=False):
+def calc_equil(input_mesh_file, cog=[0,0,0], disp_tons=1260,*,rho_water=1023, grav=9.81, reltol=1e-06, verbose=False):
     
     V, F = mmio.load_MSH(input_mesh_file)
     mymesh = mesh.Mesh(V, F)
@@ -128,12 +136,51 @@ def calc_equil(input_mesh_file, cog=[0,0,-56.8], disp_tons=1260, rho_water=1023,
     
     z_corr = hydrostatics.displacement_equilibrium(mymesh, disp_tons, rho_water, grav, cog=cog, reltol=reltol, verbose=verbose)
     
+    return z_corr
 
-    return z_corr 
+def clip_mesh(input_mesh_file, show=False):
     
+    V, F = mmio.load_MSH(input_mesh_file)
+    mymesh = mesh.Mesh(V, F)
+    
+    clipped_mesh = mesh_clipper.MeshClipper(mymesh)
+
+    if show:
+        clipped_mesh.lower_mesh.show()
+    else:
+        None
+
+    return clipped_mesh.lower_mesh
+   
+def inertia_shell_mesh(input_mesh_file,rho_medium,shell_thickness,*,show=False):
+    # Returns list with two inertia objects, one at the mesh origin and the other at the CoG of the body 
+    V, F = mmio.load_MSH(input_mesh_file)
+    mymesh = mesh.Mesh(V, F)
+
+    if show:
+        temp_show_obj = mesh.Mesh(V, F)
+        temp_show_obj.show()
+    else:
+        None
+
+    myBodyInertia_atMeshOrigin = mymesh.eval_shell_mesh_inertias(rho_medium,shell_thickness)
+    myBodyInertia_atCoG = myBodyInertia_atMeshOrigin.at_cog
+
+    return myBodyInertia_atMeshOrigin,myBodyInertia_atCoG
 
 if __name__ == '__main__':
     
-    isFileWritten, output,K_hst,K_dim = write_hydrost_file('TS_finalconfig2.msh', 'TS_finalconfig2', show = True)
-    m,vol,i1,i2,i3,I = get_hydrost('TS_finalconfig2.msh', CoG_Z = 0.0)
-    isQualityPrinted = print_mesh_quality('TS_finalconfig2.msh', show = True)
+    #isFileWritten, output,K_hst,K_dim = write_hydrost_file('prova_Hydraspar_notclipped.msh', 'prova', show = True)
+    #m,vol,i1,i2,i3,I = get_hydrost('prova_Hydraspar_notclipped.msh', CoG_Z = 0.0)
+    #isQualityPrinted = print_mesh_quality('prova_Hydraspar_notclipped.msh', show = True)
+    #clippedMesh = clip_mesh('prova_Hydraspar_notclipped.msh', show = True)
+    #calculatedEquil = calc_equil('prova_Hydraspar_notclipped.msh', show = True)
+    inertia = inertia_shell_mesh('prova_Hydraspar_notclipped.msh',7850,0.01, show = True)
+
+    # Property ".inertia matrix" to have access to the inertia matrix [3x3]
+    # Property ".mass" to have access to the mass
+    # Property ".gravity_center" to have access to the CoG coordinates [3x1]
+
+    print(inertia[1].mass)
+    print(inertia[1].gravity_center)
+    print(inertia[1].inertia_matrix)

@@ -2,3 +2,11 @@ PROVA - Capytaine complete in 285.5 s
 PROVA - Capytaine complete in 79.1 s 
 prova_QBlade_1 - Capytaine complete in 0.0 s 
 9b1cf08876484c7f876cad0284817355 - Capytaine complete in 0.0 s 
+PROVANUOVO - Capytaine complete in 279.1 s 
+PROVANUOVO - Capytaine complete in 264.5 s 
+PROVANUOVO - Capytaine complete in 258.9 s 
+PROVANUOVO - Capytaine complete in 263.5 s 
+PROVANUOVO2 - Capytaine complete in 247.9 s 
+PROVANUOVO3 - Capytaine complete in 255.1 s 
+PROVANOSIM - Capytaine complete in 266.1 s 
+PROVANOSIM2 - Capytaine complete in 278.3 s 

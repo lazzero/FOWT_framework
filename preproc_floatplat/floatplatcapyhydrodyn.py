@@ -31,6 +31,7 @@ def create_hydrodyn_database(input_mesh_file, omegas, wave_directions = [0],*, s
     body = cpt.FloatingBody.from_file(input_mesh_file)  # msh file
     body.add_all_rigid_body_dofs()
     body.keep_immersed_part()
+
     if show : body.show()
 
     if not np.isin(0, wave_directions):
@@ -256,7 +257,7 @@ if __name__ == '__main__':
     omega = np.linspace(0.1,4,15)
     #directions = np.linspace(-np.pi,np.pi,8)
     directions = [0]
-    dataset = create_hydrodyn_database("prova_Hydraspar.msh", omega, directions)
+    dataset = create_hydrodyn_database("prova_Hydraspar_notclipped.msh", omega, directions,show=True)
     isConverted = convert_CAPYtoWAMIT_file(dataset,"prova_Hydraspar")
     #print(dataset)
 

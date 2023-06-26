@@ -1,0 +1,72 @@
+--------- AeroDyn v14.05.* INPUT FILE -------------------------------------------------------------------------
+50 kW aerodynamic parameters - test iniziale.
+BEDDOES                         StallMod 	- Dynamic stall included [BEDDOES or STEADY] (unquoted string)
+USE_CM                          UseCm    	- Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
+EQUIL                           InfModel 	- Inflow model [DYNIN or EQUIL] (unquoted string)
+SWIRL                           IndModel 	- Induction-factor model [NONE or WAKE or SWIRL] (unquoted string)
+   0.005                        AToler   	- Induction-factor tolerance (convergence criteria) (-)
+PRANDtl                         TLModel  	- Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
+PRANDtl                         HLModel  	- Hub-loss model (EQUIL only) [PRANDtl or NONE] (unquoted string)
+NEWTOWER                        TwrShad  	- Tower-shadow velocity deficit (-)
+False                           TwrPotent   	- Calculate tower potential flow (flag)  INSTEAD OF  9999.9      ShadHWid    - Tower-shadow half width (m)
+False                           TwrShadow   	- Calculate tower shadow (flag)          INSTEAD OF  9999.9      T_Shad_Refpt- Tower-shadow reference point (m)
+False          			TwrFile     	- Tower drag file name (quoted string)
+False                           CalcTwrAero 	- Calculate aerodynamic drag of the tower at the ElastoDyn nodes.  TwrPotent must be true.
+   1.225                        AirDens  	- Air density (kg/m^3)
+   1.4639e-5                    KinVisc  	- Kinematic air viscosity (m^2/sec)
+   0.005                        DTAero   	- Time interval for aerodynamic calculations (sec)
+   26                           NumFoil  	- Number of airfoil files (-)
+PL6_Aerodata_Fast\Cerchio_Aero_Fast.dat
+PL6_Aerodata_Fast\Sez730_Aero_Fast.dat
+PL6_Aerodata_Fast\Sez1200_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat
+PL6_Aerodata_Fast\ED1308_Aero_Fast.dat           	                                                      
+26                         BldNodes 	- Number of blade nodes used for analysis (-)
+RNodes	AeroTwst	DRNodes	Chord	NFoil	PrnElm
+0.8555	-2	0.441	0.42	1	PRINT
+1.28	24.157	0.408	0.745	2	
+1.898	15.211	0.828	0.875	3	
+2.723	9.885	0.822	0.86	4
+3.547	7.674	0.826	0.781	5	
+4.371	6.489	0.822	0.717	6	
+5.195	5.512	0.826	0.676	7
+6.02	4.812	0.824	0.636	8	
+6.844	4.241	0.824	0.596	9	
+7.462	3.877	0.412	0.566	10	
+7.771	3.719	0.206	0.552	11	
+7.977	3.614	0.206	0.543	12	
+8.183	3.509	0.206	0.533	13	
+8.389	3.403	0.206	0.52	14	
+8.5555	3.340678771	0.127	0.504504961	15	
+8.6915	3.289773743	0.145	0.485239088	16	
+8.8395	3.234377095	0.151	0.460862768	17	
+8.9505	3.192829609	0.071	0.440247804	18	
+9.05025	3.155493017	0.1285	0.420016424	19	
+9.17875	3.107395251	0.1285	0.391574068	20
+9.30725	3.059297486	0.1285	0.360452072	21	
+9.43575	3.011199721	0.1285	0.326650434	22
+9.5625	2.963756983	0.125	0.29068398	23	
+9.6875	2.916969274	0.125	0.252660699	24	
+9.8125	2.870181564	0.125	0.212101762	25	
+9.9375	2.823393855	0.125	0.169007168	26	PRINT

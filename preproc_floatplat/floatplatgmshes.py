@@ -5,7 +5,11 @@ Created on Thu Sep  2 11:23:00 2021
 #  float_plat_gmshes.py is Module for creating regular meshes for FLOATING PLATFORMS of wind turbines with GMSH
 #  Run it as an independent script if you need it.
 #  Contains: 
-#  - functions: create_spar_mesh, create_triple_spar_mesh, create_OC3_spar_mesh, create_hydraspar_mesh
+#  - functions: create_spar_mesh,
+#               create_triple_spar_mesh,
+#               create_OC3_spar_mesh,
+#               create_OC3_spar_mesh_roty
+#               create_hydraspar_mesh
 #
 #
 
@@ -908,9 +912,11 @@ def create_triple_spar_mesh(name_file,spar_radius,spar_height,hp_radius,hp_thick
 #                         heave_plate_radius, heave_plate_thickness,
 #                         spar_lateral_radius, spar_lateral_length,
 #                         spar_lateral_N, spar_lateral_angle,
+#                         spar_brace_radius,
+#                         spar_brace_angle,spar_brace_height,
 #                         alfa_init, 
 #                         mesh_size_min, mesh_size_max,
-#                         *,show):
+#                         *,show,clip,sealevelboundary):
 ## ------------------------------------------------------------------------------
 
 def create_hydraspar_mesh(name_file, draft, interface_TwSL, 
@@ -919,9 +925,13 @@ def create_hydraspar_mesh(name_file, draft, interface_TwSL,
                          heave_plate_radius, heave_plate_thickness,
                          spar_lateral_radius, spar_lateral_length,
                          spar_lateral_N, spar_lateral_angle,
+                         spar_brace_radius,
+                         spar_brace_angle,spar_brace_height,
                          alfa_init,
-                         mesh_size_min, mesh_size_max,
-                         *,show):
+                         mesh_size_min, mesh_size_max = 0.05,
+                         *,show=False,clip=True,
+                         sealevelboundary = 100,MSL = 0,
+                         threshold = 1E-10):
     
     gmsh.initialize()
     gmsh.option.setNumber("Mesh.MshFileVersion", 2)
@@ -977,15 +987,18 @@ def create_hydraspar_mesh(name_file, draft, interface_TwSL,
     alfai = 360/N
     alfa_vec = alfa_init+np.linspace(alfai,360,N)
     
-    #gmsh.model.occ.addBox(-R, -R, -R, 2 * R, 2 * R, 2 * R, 1)
-    #gmsh.model.occ.addSphere(0, 0, 0, Rt, 2)
+    #define brace cylinder
+    gamma = spar_brace_angle
+
+    # creates solids
     C1 = gmsh.model.occ.addCylinder(XC1, YC1, ZC1, dxC1, dyC1, dzC1, RC1, tag = 1)
     Co1 = gmsh.model.occ.addCone(XCo1, YCo1, ZCo1, dxCo1,dyCo1,dzCo1,RC1,RC2, tag = 2)
     C2 = gmsh.model.occ.addCylinder(XC2, YC2, ZC2, dxC2, dyC2, dzC2, RC2, tag = 3)
     HP1 = gmsh.model.occ.addCylinder(XHP1, YHP1, ZHP1, dxHP1, dyHP1, dzHP1, RC3, tag = 4)
     
     Cl = np.empty(N)
-    
+    Cb = np.empty(N)
+
     for i in range(0,N):
         
         alfa = alfa_vec[i]
@@ -996,117 +1009,114 @@ def create_hydraspar_mesh(name_file, draft, interface_TwSL,
         dxCl = l*(0.93) *math.sin(math.radians(beta))*math.cos(math.radians(alfa))
         dyCl = l*(0.93) *math.sin(math.radians(beta))*math.sin(math.radians(alfa))
         dzCl = l*(0.93) *math.cos(math.radians(beta))
-
-        Cl = np.append(Cl, [gmsh.model.occ.addCylinder(XCl,YCl,ZCl,dxCl,dyCl,dzCl,RCl, tag = 100+i)], axis=0)
-        gmsh.model.occ.cut([(3,100+i)],[(3,3)],removeTool=False)
-        gmsh.model.occ.remove([(3,100+i)], recursive=False)
-        surfaces = gmsh.model.occ.getEntities(2)
-        end = len(surfaces)
-        print(surfaces)
-        if alfa == 180.0:
-            gmsh.model.occ.remove([surfaces[(end-3)],surfaces[(end-2)],surfaces[(end-1)]], recursive=True)
-        else:
-            gmsh.model.occ.remove([surfaces[(end-2)],surfaces[(end-1)]], recursive=True)
-        print('last is lateral spar lateral surface --------')
-        print(surfaces)
-        print('lines --------')
-        lines = gmsh.model.occ.getEntities(1)
-        print(lines)
-        print('---------')
-
-    # Create HP top surface
-    gmsh.model.occ.cut([(2, 12)], [(2, 8)], 100)
-    
-    # Delete volumes and internal surfaces
-    gmsh.model.occ.remove([(3,C1),(3,Co1),(3,C2),(3,HP1)], recursive=False)
-    gmsh.model.occ.remove([(2,2),(2,3),(2,5),(2,6),(2,8),(2,9),(2,12)], recursive=True)
-    print('lines @ this point --------')
-    lines = gmsh.model.occ.getEntities(1)
-    print(lines)
-    print('---------')
-    
-    # Create sea level cut plane
-    gmsh.model.occ.addPoint(20, 20, 0, tag = 100)
-    gmsh.model.occ.addPoint(-20, 20, 0, tag = 200)
-    gmsh.model.occ.addPoint(-20, -20, 0, tag = 300)
-    gmsh.model.occ.addPoint(20, -20, 0, tag = 400)
-    gmsh.model.occ.addLine(100, 200, tag = 100)
-    gmsh.model.occ.addLine(300, 200, tag = 200)
-    gmsh.model.occ.addLine(300, 400, tag = 300)
-    gmsh.model.occ.addLine(400, 100, tag = 400)
-    gmsh.model.occ.addCurveLoop([400, 100, -200, 300], 200)
-    gmsh.model.occ.addPlaneSurface([200], 200)
-    
-
-    p = gmsh.model.occ.cut([(2, 1)], [(2, 200)])
-    gmsh.model.occ.remove([p[0][2]],recursive=True)
-    
-    for i in range(0,N):
-        t = gmsh.model.occ.cut([(2, 13+i)], [(2, 200)])
-        gmsh.model.occ.remove([t[0][2]],recursive=True)
-    
-    # remove sea level
-    gmsh.model.occ.remove([(2,200)],recursive=True)
-    
-    print('lines @ end --------')
-    lines = gmsh.model.occ.getEntities(1)
-    print(lines)
-    print('---------')
-    
-    holes = np.empty(N)
-    cut_surf = []
-    k=0
-    for i in range(0,N):
-        alfa = alfa_vec[i]
-        if alfa == 180.0:
-            l1 = gmsh.model.occ.cut([(1, 8)], [(1,404+k+3*i)],removeTool=False)
-            a = gmsh.model.occ.addCurveLoop([404+k+3*i,l1[0][1][1]])
-            b = gmsh.model.occ.addCurveLoop([405+k+3*i,l1[0][1][1]])
-            f1 = gmsh.model.occ.addPlaneSurface([a])
-            f2 = gmsh.model.occ.addPlaneSurface([b])
-            print('f1---------')
-            print(f1)
-            print('f2---------')
-            print(f2)
-            holes[i] = f1
-            c = gmsh.model.occ.cut([(2, 7)], [(2,f1),(2,f2)],removeObject=False)
-            print('cut_surf---------')
-            print(c)
-            print('---------')
-            cut_surf.append(c[0])
-            k=1
-        else:
-            a = gmsh.model.occ.addCurveLoop([404+k+3*i])
-            f = gmsh.model.occ.addPlaneSurface([a])
-            print('f---------')
-            print(f)
-            holes[i] = f
-            c = gmsh.model.occ.cut([(2, 7)], [(2,f)],removeObject=False)
-            print('cut_surf---------')
-            print(c)
-            print('---------')
-            cut_surf.append(c[0])
-
-
-    
-    print('holes---------')
-    print(holes)
-    print('---------')
-    
-    
-    gmsh.model.occ.remove([(2,7)],recursive=True) 
-
-    intersect_surf = []
-    intersect_surf.append(cut_surf[0])
-    
-    for i in range(0,N-1):
-        intersect_surf.append(gmsh.model.occ.intersect(intersect_surf[i],cut_surf[i+1])[0])
+        lb   = spar_brace_height*(math.tan(math.radians(gamma))*math.tan(math.radians(beta))/(math.tan(math.radians(gamma))+math.tan(math.radians(beta))))/math.sin(math.radians(gamma))
+        XCb  = lb*(0.08) *math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
+        YCb  = lb*(0.08) *math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
+        ZCb  = -draft+spar_brace_height
+        dxCb = lb*(0.92)*math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
+        dyCb = lb*(0.92)*math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
+        dzCb = -lb*math.cos(math.radians(gamma))
+        Cb   = np.append(Cb, [gmsh.model.occ.addCylinder(XCb, YCb, ZCb, dxCb, dyCb, dzCb, spar_brace_radius, tag = 200+i)], axis=0)
+        Cl   = np.append(Cl, [gmsh.model.occ.addCylinder(XCl,YCl,ZCl,dxCl,dyCl,dzCl,RCl, tag = 100+i)], axis=0)
         
+
+    #print('Surfaces:')
+    #print(gmsh.model.occ.getEntities(2))
+    #print('Volumes:')
+    #print(gmsh.model.occ.getEntities(3))
+    surfaces = gmsh.model.occ.getEntities(3)
+    gmsh.model.occ.fuse(surfaces,surfaces)
+
+    #print('Surfaces after fusion:')
+    #print(gmsh.model.occ.getEntities(2))
+    #print('Volumes after fusion:')
+    #print(gmsh.model.occ.getEntities(3))
+
+    if clip:
+        # Create sea level cut plane
+        gmsh.model.occ.addPoint(sealevelboundary, sealevelboundary, MSL, tag = 100)
+        gmsh.model.occ.addPoint(-sealevelboundary, sealevelboundary, MSL, tag = 200)
+        gmsh.model.occ.addPoint(-sealevelboundary, -sealevelboundary, MSL, tag = 300)
+        gmsh.model.occ.addPoint(sealevelboundary, -sealevelboundary, MSL, tag = 400)
+        gmsh.model.occ.addLine(100, 200, tag = 100)
+        gmsh.model.occ.addLine(300, 200, tag = 200)
+        gmsh.model.occ.addLine(300, 400, tag = 300)
+        gmsh.model.occ.addLine(400, 100, tag = 400)
+        gmsh.model.occ.addCurveLoop([400, 100, -200, 300], 200)
+        gmsh.model.occ.addPlaneSurface([200], 200)
+
+        p = gmsh.model.occ.fragment([(2, 200)],[(3, 1)])
+        plane = gmsh.model.occ.getEntities(2)[-1]
+        #print(gmsh.model.occ.getEntities(2)[-1])
+
+        gmsh.model.occ.remove([plane],recursive=True)
+        #print('-----------------P[0]-----------------')
+        #print(p[0])
+        #print('----------------MODULE----------------')
+        #print(np.mod(len(p[0]),2))
+        #print('--------------------------------------')
+        
+        # Remove volumes above sea level
+        volumes_to_remove = []
+
+        for ent in gmsh.model.occ.getEntities(3):
+            # I am able to get center of mass of volumes.
+            vol_CenterOfMass = gmsh.model.occ.getCenterOfMass(3, ent[1])
+            #print('---------VOLUMESCenterOfMass----------')
+            #print(vol_CenterOfMass)
+            #print('--------------------------------------')
+        
+            if vol_CenterOfMass[2]>MSL:
+                volumes_to_remove.append(ent)
+
+
+        #if len(p[0]) == 3:
+        #    volumes_to_remove = [p[0][0]]
+        #else:
+        #    volumes_to_remove = p[0][1:-1]
+
+        gmsh.model.occ.remove(volumes_to_remove,recursive=True)
+
+        # Remove surfaces on sea level
+        #print('Surfaces before removal:')
+        #print(gmsh.model.occ.getEntities(2))
+
+        surfaces_to_remove = []
+
+        for ent in gmsh.model.occ.getEntities(2):
+            # I am able to get center of mass of surfaces.
+            surf_CenterOfMass = gmsh.model.occ.getCenterOfMass(2, ent[1])
+            #print('---------SURFACESCenterOfMass-----------')
+            #print(surf_CenterOfMass)
+            #print('----------------------------------------')
+        
+            if np.abs(surf_CenterOfMass[2]-MSL)<threshold:
+                #print('Append surface')
+                surfaces_to_remove.append(ent)
+        #print('Surfaces to remove:')
+        #print(surfaces_to_remove)
+        gmsh.model.occ.remove(gmsh.model.occ.getEntities(3),recursive=False)
+        gmsh.model.occ.remove(surfaces_to_remove,recursive=False)
+
+        # remove sea level
+        # gmsh.model.occ.remove([(2,200)],recursive=True
+        gmsh.model.occ.remove([p[0][-1]],recursive=True)
+        #print('Surfaces after removal:')
+        #print(gmsh.model.occ.getEntities(2))
+
+    
     # create mesh
     gmsh.model.occ.synchronize()    
     gmsh.model.mesh.generate(2)
-    gmsh.model.mesh.recombine()
-    gmsh.model.mesh.recombine()
+
+    try:
+        gmsh.model.mesh.recombine()
+    except:
+        print('recombine failed - ignoring...')
+    try:
+       gmsh.model.mesh.recombine()
+    except:
+       print('recombine failed - ignoring...')
 
     # Create name of file
     ext_file = ".msh"
@@ -1135,22 +1145,7 @@ def create_OC3_spar_mesh_roty(name_file, spar_radius1,spar_radius2, spar_height1
     # We can log all messages for further processing with:
     #gmsh.logger.start()
     
-    # This function create a SPAR
-    #:::::::::::::z::::::::::::
-    #:::::::::::::^::::::::::::
-    #:::::::::::::|::::::::::::
-    # ----------(-o-)-------->x
-    # ::::::::::(-|-):::spar1::
-    # ::::::::::(-|-)::::::::::
-    # ::::::::::/-|-\::::::::::
-    # :::::::::(--|--):::::::::
-    # :::::::::(--|--):::::::::
-    # :::::::::(--|--):::::::::
-    # :::::::::(--|--)::spar2::
-    # :::::::::(--|--):::::::::
-    # ::::::::::__|__::::::::::
-    # :::::::draft|::::::::::::
-    # ::::::::::::|::::::::::::
+    # This function create a rotated SPAR
     
     # Definisco le dimensioni di spar
     
@@ -1435,19 +1430,21 @@ def create_OC3_spar_mesh_roty(name_file, spar_radius1,spar_radius2, spar_height1
 
 if __name__ == '__main__':
     
-    #  - create_triple_spar_mesh(name_file, spar_radius, spar_height,hp_radius,hp_thickness,
-    #                            spar1_X,spar1_Y,spar_vertical_divisions, circle_divisions,
-    #                            hp_vertical_divisions,hp_sup_divisions,hp_inf_divisions,*,show)
-    
     #isMeshCreated = create_spar_mesh('prova_creazione', 7.5, 120, 0, 0, 80,8, 10, show = True)
     #isTSMeshCreated = create_triple_spar_mesh("TS_finalconfig2", 7.5, 53.964, 11.25, 0.5,26, 0, 40, 10, 3, 8, 7, show = True)
-    #isOC3MeshCreated = create_OC3_spar_mesh('OC3_2209', 6.5/2, 9.4/2, 4, 108, 120, 0, 0, 10, 15, 80, 8, 10,show= True)
-    isHydraSparMeshCreated = create_hydraspar_mesh('prova_HydrasparPROVA', 9.0, 6.0, 
+    #isOC3MeshCreated = create_OC3_spar_mesh_roty('OC3_2209', 6.5/2, 9.4/2, 4, 108, 120, 0, 0, 10, 15, 80, 8, 10,rot=30,show= True)
+
+    isHydraSparMeshCreated = create_hydraspar_mesh('prova_Hydraspar_notclipped',
+                              9.0, 6.0, 
                               1.0, 7.0,
                               2.5, 5.0,
                               5.0, 0.06,
                               1, 30.0,
-                              4, 50.0,
+                              3, 45.0,
+                              0.5,
+                              50,10,
                               0.0,
-                              0.3, 0.3,
-                              show = True)
+                              0.4, 0.4,
+                              show = True,
+                              clip = False,
+                              MSL = 0)

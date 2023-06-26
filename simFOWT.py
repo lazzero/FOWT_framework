@@ -47,6 +47,15 @@ def eval_Fobj(xx,\
               model,\
               evalTime = 0, penaltyValue = 9999.9,\
               filepath_template = os.getcwd() + '\\sims\\template_input_files'):
+    
+    f_max = -1
+    # Save outputs to print in "Pop_list.txt", first we save the design variables current values
+    outputsToPrint = {}
+    k = 1
+    for i in xx:
+      var_name = 'xx_'+str(k)
+      outputsToPrint[var_name] = i
+      k += 1
 
     # Start computer time
     eval_init_time = time.time()
@@ -117,22 +126,24 @@ def eval_Fobj(xx,\
     # Update paths
     updatePaths(currentTurbModel,mod_folder_name)
         
-    # Change initial displacement, if needed
+    # Change initial displacement, if needed ONLY OPENFAST
     if simSoftware == 'OpenFAST':
-        ED_data['PtfmSurge'] = 0
-        ED_data['PtfmSway'] = 0
-        ED_data['PtfmHeave'] = 0
-        ED_data['PtfmRoll'] = 0
-        ED_data['PtfmPitch'] = 0
-        ED_data['PtfmYaw'] =  0
-        ED_data.write(mod_folder_name + '\\' + currentTurbModel['ELSMODFILENAME'])
+        if currentTurbModel['OPTIONS']['FixInitDisplacement']:
+         ED_data['PtfmSurge'] = currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data['PtfmSway'] = currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data['PtfmHeave'] = currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data['PtfmRoll'] = currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data['PtfmPitch'] = currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data['PtfmYaw'] =  currentTurbModel['OPTIONS']['InitDisplacement'][0]
+         ED_data.write(mod_folder_name + '\\' + currentTurbModel['ELSMODFILENAME'])
     
     # Change final time of simulation
-    if simSoftware == 'OpenFAST':
+    if currentTurbModel['OPTIONS']['TimeDomainSim']:
+      if simSoftware == 'OpenFAST':
         fst_data = FASTInputFile(mod_folder_name+"\\"+currentTurbModel['FSTMODFILENAME'])
         fst_data['TMax'] = currentTurbModel['TMAX']
         fst_data.write(mod_folder_name+"\\"+currentTurbModel['FSTMODFILENAME'])
-    elif simSoftware == 'QBlade':
+      elif simSoftware == 'QBlade':
         qb_data = QBladeInputFile(mod_folder_name+"\\"+currentTurbModel['SIMMODFILENAME'])
         dt = qb_data['TIMESTEP']
         qb_data['NUMTIMESTEPS'] = round(currentTurbModel['TMAX']/dt)
@@ -168,65 +179,82 @@ def eval_Fobj(xx,\
                 return f_max            
 
     if simSoftware == 'OpenFAST':
+        if currentTurbModel['OPTIONS']['TimeDomainSim']:
+         # Define simulation file for OpenFAST
+         mainfilemod = mod_folder_name+'\\'+currentTurbModel['FSTMODFILENAME']
+         new_mainfilemod='"'+mainfilemod+'"'
+
+         # Run openFAST
+         openfast_init_time = time.time()
+         proc=subprocess.Popen(FASTexe+" "+ new_mainfilemod,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+         stdout,stderr = proc.communicate()
+
+         # Print OpenFAST output
+         print(stdout)
+         print(stderr)
+
+         openfast_eval_time = time.time()-openfast_init_time
+
+         # Write evaluation
+         file_object = open(os.getcwd() + '\\sims\\'+'check_parallel_execution4'+'.txt', 'a')
+         file_object.write("%s - OpenFAST and costs complete in %.1f s \n" % (id_folder,openfast_eval_time))
+         file_object.close()
+
+         output_filename = r''+mod_folder_name+'\\'+currentTurbModel['FSTMODFILENAME'][:-4]+'.outb'
+
+         ## Plot output
+         file_object = open(os.getcwd() + '\\sims\\'+'check_parallel_execution5'+'.txt', 'a')
+         file_object.write("%s - output filename %s \n" % (id_folder,output_filename))
+         file_object.close()
+         outdata=FASTOutputFile(output_filename).toDataFrame()         
+
+        if currentTurbModel['OPTIONS']['EvalCosts']:
+         # Get Costs to print
+         costs = get_costs(xx,currentTurbModel,filepath_template)
+         for i in costs.keys():
+            outputsToPrint[i] = costs[i]
         
-        # Define simulation file for OpenFAST
-        mainfilemod = mod_folder_name+'\\'+currentTurbModel['FSTMODFILENAME']
-        new_mainfilemod='"'+mainfilemod+'"'
-    
-        # Run openFAST
-        openfast_init_time = time.time()
-        proc=subprocess.Popen(FASTexe+" "+ new_mainfilemod,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-        stdout,stderr = proc.communicate()
+        if currentTurbModel['OPTIONS']['TimeDomainSim']:
+         if currentTurbModel['OPTIONS']['FFTAnalysis']:
+            if outdata.loc[:,['Time_[s]']].to_numpy()[-1,0] == model['TMAX']:
+               
+                # Frequency domain analysis
+                freqs_Yaw,Pxx1_Yaw,fft1_Yaw,fft1_normalized_Yaw = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmYaw_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Yaw")
+                freq_PSDpeak_Yaw = freqs_Yaw[np.argmax(Pxx1_Yaw)]
+                FFTpeak_Yaw = max(fft1_normalized_Yaw)
 
-        # Print OpenFAST output
-        print(stdout)
-        print(stderr)
+                freqs_Pitch,Pxx1_Pitch,fft1_Pitch,fft1_normalized_Pitch = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmPitch_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Pitch")
+                freq_PSDpeak_Pitch = freqs_Pitch[np.argmax(Pxx1_Pitch)]
+                FFTpeak_Pitch = max(fft1_normalized_Pitch)
 
-        openfast_eval_time = time.time()-openfast_init_time
-    
-        # Get Costs to print
-        costs = get_costs(xx,currentTurbModel,filepath_template)
+                freqs_Roll,Pxx1_Roll,fft1_Roll,fft1_normalized_Roll = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmRoll_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Roll")
+                freq_PSDpeak_Roll = freqs_Roll[np.argmax(Pxx1_Roll)]
+                FFTpeak_Roll = max(fft1_normalized_Roll)
 
-        # Write evaluation
-        file_object = open(os.getcwd() + '\\sims\\'+'check_parallel_execution4'+'.txt', 'a')
-        file_object.write("%s - OpenFAST and costs complete in %.1f s \n" % (id_folder,openfast_eval_time))
-        file_object.close()
-    
-        output_filename = r''+mod_folder_name+'\\'+currentTurbModel['FSTMODFILENAME'][:-4]+'.outb'
-    
-        ## Plot output
-        file_object = open(os.getcwd() + '\\sims\\'+'check_parallel_execution5'+'.txt', 'a')
-        file_object.write("%s - output filename %s \n" % (id_folder,output_filename))
-        file_object.close()
-        outdata=FASTOutputFile(output_filename).toDataFrame()
-        
-        if outdata.loc[:,['Time_[s]']].to_numpy()[-1,0] == model['TMAX']:
-            # Frequency domain analysis
-            freqs_Yaw,Pxx1_Yaw,fft1_Yaw,fft1_normalized_Yaw = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmYaw_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Yaw")
-            
-            freq_PSDpeak_Yaw = freqs_Yaw[np.argmax(Pxx1_Yaw)]
-            FFTpeak_Yaw = max(fft1_normalized_Yaw)
-            
-            freqs_Pitch,Pxx1_Pitch,fft1_Pitch,fft1_normalized_Pitch = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmPitch_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Pitch")
-            
-            freq_PSDpeak_Pitch = freqs_Pitch[np.argmax(Pxx1_Pitch)]
-            FFTpeak_Pitch = max(fft1_normalized_Pitch)
-    
-            freqs_Roll,Pxx1_Roll,fft1_Roll,fft1_normalized_Roll = freq_domain_data(outdata.loc[outdata['Time_[s]'] > evalTime,['PtfmRoll_[deg]']].to_numpy()[:,0],outdata.loc[outdata['Time_[s]'] > evalTime,['Time_[s]']].to_numpy()[:,0], None,folder_path=mod_folder_name,plot_flag=True,plot_name = "Roll")
-            
-            freq_PSDpeak_Roll = freqs_Roll[np.argmax(Pxx1_Roll)]
-            FFTpeak_Roll = max(fft1_normalized_Roll)    
-            
-            # Function evaluation
-            f_max = FFTpeak_Yaw
-        else:
-            f_max = 1/penaltyValue
-            file_object = open(os.getcwd() + '\\sims\\'+'Pop_list'+'.txt', 'a') 
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            file_object.write("%s - simulation aborted for fatal error - %.2f %.4f %s \n" % (current_time, xx[0], xx[1] ,id_folder))
-            file_object.close()
-            return f_max
+                if math.isinf(freq_PSDpeak_Roll):
+                    freq_PSDpeak_Roll = 0
+                if math.isinf(freq_PSDpeak_Pitch):
+                    freq_PSDpeak_Pitch = 0
+                if math.isinf(freq_PSDpeak_Yaw):
+                    freq_PSDpeak_Yaw = 0
+
+                outputsToPrint['FFTPeakRoll'] = FFTpeak_Roll
+                outputsToPrint['FFTPeakPitch'] = FFTpeak_Pitch
+                outputsToPrint['FFTPeakYaw'] = FFTpeak_Yaw
+                outputsToPrint['freqPeakRoll'] = freq_PSDpeak_Roll
+                outputsToPrint['freqPeakPitch'] = freq_PSDpeak_Pitch
+                outputsToPrint['freqPeakYaw'] = freq_PSDpeak_Yaw
+
+                # Objective function evaluation
+                f_max = FFTpeak_Yaw
+            else:
+                f_max = 1/penaltyValue
+                file_object = open(os.getcwd() + '\\sims\\'+'Pop_list'+'.txt', 'a') 
+                now = datetime.now()
+                current_time = now.strftime("%H:%M:%S")
+                file_object.write("%s - simulation aborted for fatal error - %.2f %.4f %s \n" % (current_time, xx[0], xx[1] ,id_folder))
+                file_object.close()
+                return f_max
         
     if simSoftware == 'QBlade':
         
@@ -250,8 +278,11 @@ def eval_Fobj(xx,\
         qblade_eval_time = time.time()-qblade_init_time
 
         # Get Costs to print
-        costs = get_costs(xx,currentTurbModel,filepath_template)
-
+        if currentTurbModel['OPTIONS']['EvalCosts']: 
+         costs = get_costs(xx,currentTurbModel,filepath_template)
+         for i in costs.keys():
+            outputsToPrint[i] = costs[i]
+        
         # Write evaluation
         file_object = open(os.getcwd() + '\\sims\\'+'check_parallel_execution4'+'.txt', 'a')
         file_object.write("%s - QBlade and costs complete in %.1f s \n" % (id_folder,qblade_eval_time))
@@ -316,68 +347,64 @@ def eval_Fobj(xx,\
     file_object.close()
 
 
-    # # Check heeling constraint and return individual in pop_list text file
-    if simSoftware == 'OpenFAST':
-        Time=outdata["Time_[s]"]
-        PtfmPitch=outdata["PtfmPitch_[deg]"]
-        heeling_max=abs(PtfmPitch[Time>Time.iloc[-1]/2].max())
-        heeling_mean=abs(PtfmPitch[Time>Time.iloc[-1]/2].mean())
-        PtfmSurge=outdata["PtfmSurge_[m]"]
-        surge_max=abs(PtfmSurge[Time>Time.iloc[-1]/2].max())
-        surge_mean=abs(PtfmSurge[Time>Time.iloc[-1]/2].mean())
-        RotThrust=outdata["RotThrust_[kN]"]
-        thrust_max=abs(RotThrust[Time>Time.iloc[-1]/2].max())
-        thrust_mean=abs(RotThrust[Time>Time.iloc[-1]/2].mean())
-        PtfmYaw=outdata["PtfmYaw_[deg]"]
-        yaw_max=PtfmYaw.max()
-    elif simSoftware == 'QBlade':
-        Time=outdata['Time [s]']
-        PtfmPitch=outdata['NP Pitch Y_l [deg]']
-        heeling_max=abs(PtfmPitch[Time>Time.iloc[-1]/2].max())
-        heeling_mean=abs(PtfmPitch[Time>Time.iloc[-1]/2].mean())
-        PtfmYaw=outdata['NP Yaw Z_l [deg]']
-        yaw_max=PtfmYaw.max()
-        PtfmSurge=outdata['X_g COG Pos. [m]']
-        surge_max=abs(PtfmSurge[Time>Time.iloc[-1]/2].max())
-        surge_mean=abs(PtfmSurge[Time>Time.iloc[-1]/2].mean())
-        RotThrust=outdata["Thrust [N]"]
-        thrust_max=abs(RotThrust[Time>Time.iloc[-1]/2].max())/1000
-        thrust_mean=abs(RotThrust[Time>Time.iloc[-1]/2].mean())/1000
+    # Save some important values from time domain simulation
+    if currentTurbModel['OPTIONS']['TimeDomainSim']:
+      if simSoftware == 'OpenFAST':
+          Time=outdata["Time_[s]"]
+
+          PtfmPitch=outdata["PtfmPitch_[deg]"]
+          heeling_max=abs(PtfmPitch[Time>Time.iloc[-1]/2].max())
+          heeling_mean=abs(PtfmPitch[Time>Time.iloc[-1]/2].mean())
+          outputsToPrint['HeelingMax'] = heeling_max
+          outputsToPrint['HeelingMean']= heeling_mean
+
+          PtfmSurge=outdata["PtfmSurge_[m]"]
+          surge_max=abs(PtfmSurge[Time>Time.iloc[-1]/2].max())
+          surge_mean=abs(PtfmSurge[Time>Time.iloc[-1]/2].mean())
+          outputsToPrint['SurgeMax'] = surge_max
+          outputsToPrint['SurgeMean']= surge_mean
+
+          RotThrust=outdata["RotThrust_[kN]"]
+          thrust_max=abs(RotThrust[Time>Time.iloc[-1]/2].max())
+          thrust_mean=abs(RotThrust[Time>Time.iloc[-1]/2].mean())
+          outputsToPrint['ThrustMax'] = thrust_max
+          outputsToPrint['ThrustMean']= thrust_mean
+
+          PtfmYaw=outdata["PtfmYaw_[deg]"]
+          yaw_max=PtfmYaw.max()
+          outputsToPrint['YawMax']= yaw_max
+
+
+      elif simSoftware == 'QBlade':
+          Time=outdata['Time [s]']
+          PtfmPitch=outdata['NP Pitch Y_l [deg]']
+          heeling_max=abs(PtfmPitch[Time>Time.iloc[-1]/2].max())
+          heeling_mean=abs(PtfmPitch[Time>Time.iloc[-1]/2].mean())
+          PtfmYaw=outdata['NP Yaw Z_l [deg]']
+          yaw_max=PtfmYaw.max()
+          PtfmSurge=outdata['X_g COG Pos. [m]']
+          surge_max=abs(PtfmSurge[Time>Time.iloc[-1]/2].max())
+          surge_mean=abs(PtfmSurge[Time>Time.iloc[-1]/2].mean())
+          RotThrust=outdata["Thrust [N]"]
+          thrust_max=abs(RotThrust[Time>Time.iloc[-1]/2].max())/1000
+          thrust_mean=abs(RotThrust[Time>Time.iloc[-1]/2].mean())/1000
+
+    # Write output files 'Pop_list'
 
     file_object = open(os.getcwd() + '\\sims\\'+'Pop_list'+'.txt', 'a') 
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
+    width = 12
+    decimals = 4
     
+    file_object.write('{:s} '.format(current_time))
+    for value in outputsToPrint.values():
+        file_object.write(f"{value:{width}.{decimals}f} ")
 
-    if math.isinf(freq_PSDpeak_Roll):
-        freq_PSDpeak_Roll = 0
-    if math.isinf(freq_PSDpeak_Pitch):
-        freq_PSDpeak_Pitch = 0
-    if math.isinf(freq_PSDpeak_Yaw):
-        freq_PSDpeak_Yaw = 0
-
-
-    if simSoftware == 'OpenFAST':
-        if len(currentTurbModel['DESVARIABLES'].keys()) == 1:
-            file_object.write("%s %.4f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.4f %.4f %s\n" % (current_time, xx[0], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max, (costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 2:
-            file_object.write("%s %.4f %.4f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.4f %.4f %s\n" % (current_time, xx[0], xx[1], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max, (costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 3:
-            file_object.write("%s %.4f %.4f %.4f %.3f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.4f %s\n" % (current_time, xx[0], xx[1], xx[2], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max, (costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 4:
-            file_object.write("%s %.4f %.4f %.4f %.4f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f %.2f %.4f %.4f %s\n" % (current_time, xx[0], xx[1], xx[2], xx[3], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max, (costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-    else:
-        if len(currentTurbModel['DESVARIABLES'].keys()) == 1:
-            file_object.write("%s %.4f %.3f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.4f %.4f %s\n" % (current_time, xx[0], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max,(costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 2:
-            file_object.write("%s %.4f %.4f %.3f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.4f %.4f %s\n" % (current_time, xx[0], xx[1], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max,(costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 3:
-            file_object.write("%s %.4f %.4f %.4f %.3f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.4f %.4f %s\n" % (current_time, xx[0], xx[1], xx[2], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max,(costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))
-        elif len(currentTurbModel['DESVARIABLES'].keys()) == 4:
-            file_object.write("%s %.4f %.4f %.4f %.4f %.3f %.3f %.3f %.3e %.3e %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.4f %.4f %s\n" % (current_time, xx[0], xx[1], xx[2], xx[3], surge_excursion, surge_max, surge_mean, thrust_max, thrust_mean, freq_PSDpeak_Roll, freq_PSDpeak_Pitch, freq_PSDpeak_Yaw, FFTpeak_Roll, FFTpeak_Pitch, FFTpeak_Yaw, heeling_mean, heeling_max, yaw_max,(costs[2]-costs[0])/costs[0],(costs[3]-costs[1])/costs[1],id_folder))       
-    
+    file_object.write('{:s}\n'.format(id_folder))
     file_object.close()
     
+    # Plot outputs, if needed
     plot_t_h_flag = False
     plot_t_h_moor_flag = False
     
@@ -387,7 +414,8 @@ def eval_Fobj(xx,\
         output_moor_filename = r''+mod_folder_name+'\\'+currentTurbModel['FSTMODFILENAME'][:-4]+'.MD.out'
         outdata_moor = FASTOutputFile(output_moor_filename).toDataFrame()
         plot_func_moor(simSoftware,evalTime,outdata_moor,folder_path=mod_folder_name)
-        
+
+    # Check heeling constraint, if needed    
     for i in currentTurbModel['CONSTRAINTS'].keys():
         if i == 'MaxHeelAngle':
             if heeling_mean> currentTurbModel['CONSTRAINTS']['MaxHeelAngle']:
@@ -652,7 +680,8 @@ def updatePaths(model,mod_folder_name):
 
 # Custom function for calculating Costs of Chains and Horizontal Legs
 def get_costs(xx,model,filepath):
-                    
+
+    costs = {}                
     MBL = 18700 # kN
     steel_cost = 5 # euro/kg
     horleg_mass = 637.686*1000 # kg weight of 3 braces
@@ -721,58 +750,68 @@ def get_costs(xx,model,filepath):
         sub_Data = QBladeInputFile(sub_file)
         WtrDpth=sub_Data['WATERDEPTH']
 
-    # Chain Costs - Chain cost function from "Castillo 2020" who cited C. Consortium
-    ref_fairlead_anchor_distance = np.sqrt((WtrDpth+FairleadHeight)**2+(AnchorRadius-FairleadRadius)**2)
-    fairlead_anchor_distance = np.sqrt((WtrDpth+PresFairleadHeight)**2+(PresAnchorRadius-PresFairleadRadius)**2)
-    ref_chain_cost = LineNumber*(0.0591*MBL-89.69)*ref_fairlead_anchor_distance*LineLengthFactor
-    pres_chain_cost = LineNumber*((0.0591*MBL-89.69)*fairlead_anchor_distance*PresLineLengthFactor)
+    if 'MoorCosts' in model['OPTIONS']['Costs']:
+      # Chain Costs - Chain cost function from "Castillo 2020" who cited C. Consortium
+      ref_fairlead_anchor_distance = np.sqrt((WtrDpth+FairleadHeight)**2+(AnchorRadius-FairleadRadius)**2)
+      fairlead_anchor_distance = np.sqrt((WtrDpth+PresFairleadHeight)**2+(PresAnchorRadius-PresFairleadRadius)**2)
+      ref_chain_cost = LineNumber*(0.0591*MBL-89.69)*ref_fairlead_anchor_distance*LineLengthFactor
+      pres_chain_cost = LineNumber*((0.0591*MBL-89.69)*fairlead_anchor_distance*PresLineLengthFactor)
+      costs['RefChainCost']=ref_chain_cost
+      costs['CurrentChainCost']=pres_chain_cost
     
-    # Horizontal Legs Costs - From Giancarlo Troise 2022 
-    ref_horleg_length = SparDistance
-    ref_horleg_cost = steel_cost * (horleg_mass + SparNumber*4*np.sqrt(ref_horleg_length/1.22)*horleg_thick*(ref_horleg_length-ref_horleg_length)*rho_steel)
-    pres_horleg_cost = steel_cost * (horleg_mass + SparNumber*4*np.sqrt(PresSparDistance/1.22)*horleg_thick*(PresSparDistance-ref_horleg_length)*rho_steel)
-    
-    return ref_chain_cost,ref_horleg_cost,pres_chain_cost,pres_horleg_cost
+    if 'BracesCosts' in model['OPTIONS']['Costs']:
+      # Horizontal Legs Costs - From Giancarlo Troise 2022 
+      ref_horleg_length = SparDistance
+      ref_horleg_cost = steel_cost * (horleg_mass + SparNumber*4*np.sqrt(ref_horleg_length/1.22)*horleg_thick*(ref_horleg_length-ref_horleg_length)*rho_steel)
+      pres_horleg_cost = steel_cost * (horleg_mass + SparNumber*4*np.sqrt(PresSparDistance/1.22)*horleg_thick*(PresSparDistance-ref_horleg_length)*rho_steel)
+      costs['RefBracesCost']=ref_horleg_cost
+      costs['CurrentBracesCost']=pres_horleg_cost    
+    return costs
 
 if __name__ == '__main__':
-   # SOFTWIND CASE
-   templateModel = TurbModel(r'.\sims\template_input_files_QBlade\_DTU10MWSoftwind_modeldefinition_QB.dat')
-   # Possible Types: "TripleSpar", "Spar"
-   templateModel.addKeyVal('PLATFORMTYPE','Spar') 
-   templateFolder = r'.\sims\template_input_files_QBlade'
-   # Possible key values for "Spar" model:
-   #        FairleadRadius, FairleadHeight, LineLengthFactor, AnchorRadius (both fixed and design)
-   #        SurgeForce, Depth, LineNumber (fixed only)
-   templateModel.addKeyVal('DESVARIABLES',{'FairleadRadius' : 18, 'FairleadHeight': -15 , 'LineLengthFactor' : 1.05})
-   templateModel.addKeyVal('FIXVARIABLES',{'LineNumber' : 3, 'AnchorRadius': 638.4,'SurgeForce': 1650000, 'Depth' : 200})
    
-   # surge constraint is checked prior to the simulation (MAP++); heel angle is checked after the simulation, max between 
-   templateModel.addKeyVal('CONSTRAINTS',{'MaxSurgeExcursion' : 50.0 , 'MaxHeelAngle' : 10}) 
-   
-   templateModel.addKeyVal('TMAX',180) # final simulation time
-   templateModel.addKeyVal('IDFOLDER','auto') # automatic folder name 
-   templateModel.addKeyVal('SIMSOFTWARE','QBlade') # software choice ("OpenFAST" or "QBlade")
+#   # SOFTWIND CASE
+#   templateModel = TurbModel(r'.\sims\template_input_files_QBlade\_DTU10MWSoftwind_modeldefinition_QB.dat')
 
-   xx = [27,-13.5044,1.07] # single run design variable assignment
-
-   f_max_try = eval_Fobj(xx,templateModel,evalTime = 0,filepath_template = templateFolder)
+#   # Possible Types: "TripleSpar", "Spar"
+#   templateModel.addKeyVal('PLATFORMTYPE','Spar') 
+#   templateFolder = r'.\sims\template_input_files_QBlade'
+#
+#   # Possible key values for "Spar" model:
+#   #        FairleadRadius, FairleadHeight, LineLengthFactor, AnchorRadius (both fixed and design)
+#   #        SurgeForce, Depth, LineNumber (fixed only)
+#   templateModel.addKeyVal('DESVARIABLES',{'FairleadRadius' : 18, 'FairleadHeight': -15 , 'LineLengthFactor' : 1.05})
+#   templateModel.addKeyVal('FIXVARIABLES',{'LineNumber' : 3, 'AnchorRadius': 638.4,'SurgeForce': 1650000, 'Depth' : 200})
+#   
+#   # Surge constraint is checked prior to the simulation (MAP++); heel angle is checked after the simulation, max between 
+#   templateModel.addKeyVal('CONSTRAINTS',{'MaxSurgeExcursion' : 50.0 , 'MaxHeelAngle' : 10}) 
+#   
+#   templateModel.addKeyVal('TMAX',180) # final simulation time
+#   templateModel.addKeyVal('IDFOLDER','auto') # automatic folder name 
+#   templateModel.addKeyVal('SIMSOFTWARE','QBlade') # software choice ("OpenFAST" or "QBlade")
+#
+#   xx = [27,-13.5044,1.07] # single run design variable assignment
+#
+#   f_max_try = eval_Fobj(xx,templateModel,evalTime = 0,filepath_template = templateFolder)
     
-    ## TRIPLE SPAR CASE ##
-#   templateModel = TurbModel(r'.\sims\template_input_files\_DTU10MW3Spar_modeldefinition.dat')
-#   templateFolder = r'.\sims\template_input_files'
-#   templateModel.addKeyVal('DESVARIABLES',{'SparDistance': 26.0})
-#   templateModel.addKeyVal('FIXVARIABLES',{'LineNumber' : 3,
-#                                           'AnchorRadius' : 600.0,
-#                                           'FairleadRadius' : 54.48, 'FairleadHeight': 8.7,'FairleadDistance': 7.5 + 21.0,
-#                                           'SparRadius' : 7.5, 'SparHeight' : 53.964, 'Depth':180,
-#                                           'HPRadius' : 11.25, 'HPHeight' : 0.5,
-#                                           'LineLengthFactor' : 1.05676,
-#                                           'SurgeForce': 1650000})
-#   templateModel.addKeyVal('CONSTRAINTS',{'MaxSurgeExcursion' : 50.0 , 'MaxHeelAngle' : 5})
-#   templateModel.addKeyVal('PLATFORMTYPE','TripleSpar')
-#   templateModel.addKeyVal('TMAX',300)
-#   templateModel.addKeyVal('IDFOLDER','PROVA')
-#   templateModel.addKeyVal('SIMSOFTWARE','OpenFAST')
-
-#   xx = [22]
-#   f_max = eval_Fobj(xx,templateModel,evalTime = 200,filepath_template = templateFolder)
+  ## TRIPLE SPAR CASE ##
+  # Simulation options:
+  templateModel = TurbModel(r'.\sims\template_input_files\_DTU10MW3Spar_modeldefinition.dat')
+  templateFolder = r'.\sims\template_input_files'
+  templateModel.addKeyVal('OPTIONS',{'TimeDomainSim':False,'FFTAnalysis':False,'EvalCosts':False,'Costs':['MoorCosts','BracesCosts'],\
+                                     'FixInitDisplacement':False,'InitDisplacement':[0,0,0,0,0,0]})    
+  templateModel.addKeyVal('DESVARIABLES',{'SparDistance': 26.0,'LineLengthFactor' : 1.05676})
+  templateModel.addKeyVal('FIXVARIABLES',{'LineNumber' : 3,
+                                          'AnchorRadius' : 600.0,
+                                          'FairleadRadius' : 54.48, 'FairleadHeight': 8.7,'FairleadDistance': 7.5 + 21.0,
+                                          'SparRadius' : 7.5, 'SparHeight' : 53.964, 'Depth':180,
+                                          'HPRadius' : 11.25, 'HPHeight' : 0.5,
+                                          'SurgeForce': 1650000})
+  templateModel.addKeyVal('CONSTRAINTS',{})
+  #templateModel.addKeyVal('CONSTRAINTS',{'MaxSurgeExcursion' : 50.0 , 'MaxHeelAngle' : 5})
+  templateModel.addKeyVal('PLATFORMTYPE','TripleSpar')
+  #templateModel.addKeyVal('TMAX',600)
+  templateModel.addKeyVal('IDFOLDER','PROVANOSIM2')
+  templateModel.addKeyVal('SIMSOFTWARE','OpenFAST')
+  xx = [26.0,1.05676]
+  f_max = eval_Fobj(xx,templateModel,evalTime = 0,filepath_template = templateFolder)

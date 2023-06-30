@@ -170,17 +170,17 @@ def inertia_shell_mesh(input_mesh_file,rho_medium,shell_thickness,*,show=False):
 
 if __name__ == '__main__':
     
-    #isFileWritten, output,K_hst,K_dim = write_hydrost_file('prova_Hydraspar_notclipped.msh', 'prova', show = True)
+    isFileWritten, output,K_hst,K_dim = write_hydrost_file('TS_finalconfig2.msh', 'TS_finalconfig2', show = True)
     #m,vol,i1,i2,i3,I = get_hydrost('prova_Hydraspar_notclipped.msh', CoG_Z = 0.0)
     #isQualityPrinted = print_mesh_quality('prova_Hydraspar_notclipped.msh', show = True)
     #clippedMesh = clip_mesh('prova_Hydraspar_notclipped.msh', show = True)
     #calculatedEquil = calc_equil('prova_Hydraspar_notclipped.msh', show = True)
-    inertia = inertia_shell_mesh('prova_Hydraspar_notclipped.msh',7850,0.01, show = True)
+    #inertia = inertia_shell_mesh('TS_finalconfig2.msh',7850,0.01, show = True)
 
     # Property ".inertia matrix" to have access to the inertia matrix [3x3]
     # Property ".mass" to have access to the mass
     # Property ".gravity_center" to have access to the CoG coordinates [3x1]
 
-    print(inertia[1].mass)
-    print(inertia[1].gravity_center)
-    print(inertia[1].inertia_matrix)
+    #print(inertia[1].mass)
+    #print(inertia[1].gravity_center)
+    #print(inertia[1].inertia_matrix)

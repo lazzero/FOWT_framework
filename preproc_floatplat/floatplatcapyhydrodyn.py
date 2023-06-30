@@ -257,8 +257,6 @@ if __name__ == '__main__':
     omega = np.linspace(0.1,4,15)
     #directions = np.linspace(-np.pi,np.pi,8)
     directions = [0]
-    dataset = create_hydrodyn_database("prova_Hydraspar_notclipped.msh", omega, directions,show=True)
-    isConverted = convert_CAPYtoWAMIT_file(dataset,"prova_Hydraspar")
+    dataset = create_hydrodyn_database("big_Hydraspar_clipped.msh", omega, directions,show=True)
+    isConverted = convert_CAPYtoWAMIT_file(dataset,"big_Hydraspar_clipped")
     #print(dataset)
-
-

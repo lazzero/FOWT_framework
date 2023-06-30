@@ -999,22 +999,26 @@ def create_hydraspar_mesh(name_file, draft, interface_TwSL,
     Cl = np.empty(N)
     Cb = np.empty(N)
 
+    spar_adjust_factor = 0.05
+    brace_adjust_factor = 0.05
+    spar_lateral_height_ratio = 0.025
+
     for i in range(0,N):
         
         alfa = alfa_vec[i]
-        XCl = l*(0.07) *math.sin(math.radians(beta))*math.cos(math.radians(alfa))
-        YCl = l*(0.07) *math.sin(math.radians(beta))*math.sin(math.radians(alfa))
-        ZCl = -draft + l*(0.07)*math.cos(math.radians(beta))
+        XCl = l*(spar_adjust_factor) *math.sin(math.radians(beta))*math.cos(math.radians(alfa))
+        YCl = l*(spar_adjust_factor) *math.sin(math.radians(beta))*math.sin(math.radians(alfa))
+        ZCl = -(draft-draft*spar_lateral_height_ratio) + l*(spar_adjust_factor)*math.cos(math.radians(beta))
         RCl = spar_lateral_radius
-        dxCl = l*(0.93) *math.sin(math.radians(beta))*math.cos(math.radians(alfa))
-        dyCl = l*(0.93) *math.sin(math.radians(beta))*math.sin(math.radians(alfa))
-        dzCl = l*(0.93) *math.cos(math.radians(beta))
+        dxCl = l*(1-spar_adjust_factor) *math.sin(math.radians(beta))*math.cos(math.radians(alfa))
+        dyCl = l*(1-spar_adjust_factor) *math.sin(math.radians(beta))*math.sin(math.radians(alfa))
+        dzCl = l*(1-spar_adjust_factor) *math.cos(math.radians(beta))
         lb   = spar_brace_height*(math.tan(math.radians(gamma))*math.tan(math.radians(beta))/(math.tan(math.radians(gamma))+math.tan(math.radians(beta))))/math.sin(math.radians(gamma))
-        XCb  = lb*(0.08) *math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
-        YCb  = lb*(0.08) *math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
+        XCb  = lb*(brace_adjust_factor) *math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
+        YCb  = lb*(brace_adjust_factor) *math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
         ZCb  = -draft+spar_brace_height
-        dxCb = lb*(0.92)*math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
-        dyCb = lb*(0.92)*math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
+        dxCb = lb*(1-brace_adjust_factor)*math.sin(math.radians(gamma))*math.cos(math.radians(alfa))
+        dyCb = lb*(1-brace_adjust_factor)*math.sin(math.radians(gamma))*math.sin(math.radians(alfa))
         dzCb = -lb*math.cos(math.radians(gamma))
         Cb   = np.append(Cb, [gmsh.model.occ.addCylinder(XCb, YCb, ZCb, dxCb, dyCb, dzCb, spar_brace_radius, tag = 200+i)], axis=0)
         Cl   = np.append(Cl, [gmsh.model.occ.addCylinder(XCl,YCl,ZCl,dxCl,dyCl,dzCl,RCl, tag = 100+i)], axis=0)
@@ -1430,21 +1434,34 @@ def create_OC3_spar_mesh_roty(name_file, spar_radius1,spar_radius2, spar_height1
 
 if __name__ == '__main__':
     
+    #  - create_hydraspar_mesh(name_file,
+    #  draft, interface_TwSL, 
+#                         spar_central1_radius, spar_central1_height,
+#                         spar_central2_radius, spar_central2_height,
+#                         heave_plate_radius, heave_plate_thickness,
+#                         spar_lateral_radius, spar_lateral_length,
+#                         spar_lateral_N, spar_lateral_angle,
+#                         spar_brace_radius,
+#                         spar_brace_angle,spar_brace_height,
+#                         alfa_init, 
+#                         mesh_size_min, mesh_size_max,
+#                         *,show,clip,MSL,sea_level_boundary):
+
     #isMeshCreated = create_spar_mesh('prova_creazione', 7.5, 120, 0, 0, 80,8, 10, show = True)
     #isTSMeshCreated = create_triple_spar_mesh("TS_finalconfig2", 7.5, 53.964, 11.25, 0.5,26, 0, 40, 10, 3, 8, 7, show = True)
     #isOC3MeshCreated = create_OC3_spar_mesh_roty('OC3_2209', 6.5/2, 9.4/2, 4, 108, 120, 0, 0, 10, 15, 80, 8, 10,rot=30,show= True)
 
-    isHydraSparMeshCreated = create_hydraspar_mesh('prova_Hydraspar_notclipped',
-                              9.0, 6.0, 
-                              1.0, 7.0,
-                              2.5, 5.0,
-                              5.0, 0.06,
-                              1, 30.0,
-                              3, 45.0,
-                              0.5,
-                              50,10,
+    isHydraSparMeshCreated = create_hydraspar_mesh('big_Hydraspar_notclipped',
+                              50.0, 10.0, 
+                              3.0, 30.0,
+                              7, 20.0,
+                              11.0, 0.5,
+                              4,90.0,
+                              3, 50.0,
+                              2,
+                              70,30,
                               0.0,
-                              0.4, 0.4,
+                              1.5, 1.5,
                               show = True,
                               clip = False,
                               MSL = 0)

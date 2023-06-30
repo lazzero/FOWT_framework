@@ -11,3 +11,4 @@ time: 15:52:33, recognized simulation software: OpenFAST, folder id: PROVANUOVO2
 time: 16:24:50, recognized simulation software: OpenFAST, folder id: PROVANUOVO3 
 time: 17:28:10, recognized simulation software: OpenFAST, folder id: PROVANOSIM 
 time: 17:49:07, recognized simulation software: OpenFAST, folder id: PROVANOSIM2 
+time: 15:55:22, recognized simulation software: OpenFAST, folder id: PROVANOSIM2 

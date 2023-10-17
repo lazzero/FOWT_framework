@@ -125,4 +125,4 @@ def cleanLine(l):
 
 if __name__ == "__main__":
     
-    model = TurbModel(r'C:\FOWT_optim\FOWT_optim_test\sims\template_input_files\_DTU10MW3Spar_modeldefinition.dat')
+    model = TurbModel(r'C:\cloned_repositories\FOWT_framework\sims\template_input_files\_DTU10MW3Spar_modeldefinition.dat')

@@ -1,10 +1,2 @@
-*.pyc
-*.egg-info
-build
-dist
 _*
-!__init__.py
-*.spec
-*.pdf
-*.png
-
+data

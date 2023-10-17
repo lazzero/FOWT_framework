@@ -21,7 +21,7 @@ from pathlib import Path
 from pyFAST.input_output.fast_input_file import FASTInputFile
 from pyFAST.input_output.fast_output_file import FASTOutputFile
 from mappp_mooring_response import calc_mooring_restoring_matrix
-import QBladeDllInterface.qbladesys as QBlade
+#import QBladeDllInterface.qbladesys as QBlade
 from pyQBlade.qblade_input_file import QBladeInputFile
 from pyQBlade.qblade_output_file import QBladeOutputFile
 from turbclass import TurbModel
@@ -798,9 +798,9 @@ if __name__ == '__main__':
   # Simulation options:
   templateModel = TurbModel(r'.\sims\template_input_files\_DTU10MW3Spar_modeldefinition.dat')
   templateFolder = r'.\sims\template_input_files'
-  templateModel.addKeyVal('OPTIONS',{'TimeDomainSim':False,'FFTAnalysis':False,'EvalCosts':False,'Costs':['MoorCosts','BracesCosts'],\
+  templateModel.addKeyVal('OPTIONS',{'TimeDomainSim':True,'FFTAnalysis':True,'EvalCosts':True,'Costs':['MoorCosts','BracesCosts'],\
                                      'FixInitDisplacement':False,'InitDisplacement':[0,0,0,0,0,0]})    
-  templateModel.addKeyVal('DESVARIABLES',{'SparDistance': 26.0,'LineLengthFactor' : 1.05676})
+  templateModel.addKeyVal('DESVARIABLES',{'SparDistance': 32.0,'LineLengthFactor' : 1.05676})
   templateModel.addKeyVal('FIXVARIABLES',{'LineNumber' : 3,
                                           'AnchorRadius' : 600.0,
                                           'FairleadRadius' : 54.48, 'FairleadHeight': 8.7,'FairleadDistance': 7.5 + 21.0,
@@ -810,8 +810,8 @@ if __name__ == '__main__':
   templateModel.addKeyVal('CONSTRAINTS',{})
   #templateModel.addKeyVal('CONSTRAINTS',{'MaxSurgeExcursion' : 50.0 , 'MaxHeelAngle' : 5})
   templateModel.addKeyVal('PLATFORMTYPE','TripleSpar')
-  #templateModel.addKeyVal('TMAX',600)
-  templateModel.addKeyVal('IDFOLDER','PROVANOSIM2')
+  templateModel.addKeyVal('TMAX',600)
+  templateModel.addKeyVal('IDFOLDER','PROVANUOVOPYFAST')
   templateModel.addKeyVal('SIMSOFTWARE','OpenFAST')
   xx = [26.0,1.05676]
   f_max = eval_Fobj(xx,templateModel,evalTime = 0,filepath_template = templateFolder)

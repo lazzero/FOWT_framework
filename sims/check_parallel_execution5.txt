@@ -6,3 +6,5 @@ PROVANUOVO - output filename C:\FOWT_framework\sims\mod_input_files_PROVANUOVO\D
 PROVANUOVO2 - output filename C:\FOWT_framework\sims\mod_input_files_PROVANUOVO2\DTU10MW3Spar_Param_MPHC_par.outb 
 PROVANUOVO3 - output filename C:\FOWT_framework\sims\mod_input_files_PROVANUOVO3\DTU10MW3Spar_Param_MPHC_par.outb 
 PROVANOSIM - output filename C:\FOWT_framework\sims\mod_input_files_PROVANOSIM\DTU10MW3Spar_Param_MPHC_par.outb 
+PROVADELFT - output filename C:\cloned_repositories\FOWT_framework\sims\mod_input_files_PROVADELFT\DTU10MW3Spar_Param_MPHC_par.outb 
+PROVANUOVOPYFAST - output filename C:\cloned_repositories\FOWT_framework\sims\mod_input_files_PROVANUOVOPYFAST\DTU10MW3Spar_Param_MPHC_par.outb 

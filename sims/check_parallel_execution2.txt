@@ -11,3 +11,8 @@ PROVANUOVO3 - Capytaine complete in 255.1 s
 PROVANOSIM - Capytaine complete in 266.1 s 
 PROVANOSIM2 - Capytaine complete in 278.3 s 
 PROVANOSIM2 - Capytaine complete in 315.6 s 
+PROVANOSIM2 - Capytaine complete in 37.6 s 
+PROVANOSIM2 - Capytaine complete in 36.2 s 
+PROVANOSIM2 - Capytaine complete in 34.6 s 
+PROVADELFT - Capytaine complete in 38.7 s 
+PROVANUOVOPYFAST - Capytaine complete in 37.8 s 

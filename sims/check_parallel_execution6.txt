@@ -8,3 +8,8 @@ PROVANUOVO3 successful execution of individual - number of .outb/.outq files: 4 
 PROVANOSIM successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 400.14 s - f_max: -1.0000 
 PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 278.37 s - f_max: -1.0000 
 PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 0 - total evaluation elapsed time 315.83 s - f_max: -1.0000 
+PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 0 - total evaluation elapsed time 37.64 s - f_max: -1.0000 
+PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 0 - total evaluation elapsed time 36.20 s - f_max: -1.0000 
+PROVANOSIM2 successful execution of individual - number of .outb/.outq files: 0 - total evaluation elapsed time 34.58 s - f_max: -1.0000 
+PROVADELFT successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 98.93 s - f_max: 1.3676 
+PROVANUOVOPYFAST successful execution of individual - number of .outb/.outq files: 1 - total evaluation elapsed time 97.21 s - f_max: 1.3676 

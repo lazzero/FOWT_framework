@@ -6,3 +6,5 @@ PROVANUOVO - OpenFAST and costs complete in 136.5 s
 PROVANUOVO2 - OpenFAST and costs complete in 132.9 s 
 PROVANUOVO3 - OpenFAST and costs complete in 134.5 s 
 PROVANOSIM - OpenFAST and costs complete in 133.9 s 
+PROVADELFT - OpenFAST and costs complete in 58.9 s 
+PROVANUOVOPYFAST - OpenFAST and costs complete in 58.2 s 
